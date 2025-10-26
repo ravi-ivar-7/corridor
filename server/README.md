@@ -1,37 +1,16 @@
 # Clipboard Sync
 
-A cross-platform clipboard synchronization tool that allows you to share clipboard content between devices in real-time.
+Seamlessly sync your clipboard across all your devices in real-time. A simple and efficient solution for sharing text between devices.
 
-## Features
+## ✨ Features
 
-- 📋 Real-time clipboard synchronization
-- 🔒 Secure local network communication
-- 🌐 Web interface for easy access
-- 🚀 Built with Next.js and TypeScript
+- **Real-time Clipboard Sync** - Instantly share text between devices
+- **Token-based Access** - Generate a token to connect your devices
+- **No Installation** - Works directly in your web browser
+- **Simple Setup** - No signup or account required
 
-## Getting Started
+## 🔗 How It Works
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Usage
-
-1. Start the server on your main device
-2. Access the web interface on any device in the same network
-3. Copy text on one device and paste it on another
-
-## Tech Stack
-
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- React 19
+1. **Generate a Token** - Create a unique token to identify your clipboard session
+2. **Share the Token** - Use the same token on all devices you want to sync
+3. **Start Syncing** - Copy on one device, paste on another - it's that simple!
