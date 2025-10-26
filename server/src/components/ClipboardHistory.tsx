@@ -58,7 +58,7 @@ const ClipboardItem = ({ item, onCopy }: ClipboardItemProps) => {
       
       {isExpanded && (
         <div className="px-4 pb-4 -mt-2">
-          <div className="bg-gray-50 p-3 rounded-md">
+          <div className="bg-gray-50 p-3 rounded-md max-h-96 overflow-y-auto">
             <pre className="whitespace-pre-wrap break-words text-sm text-gray-800 font-sans">
               {item.content}
             </pre>

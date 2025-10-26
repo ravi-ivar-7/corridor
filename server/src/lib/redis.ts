@@ -65,12 +65,39 @@ export async function getClipboardHistory(token: string): Promise<ClipboardItem[
 }
 
 // Add new clipboard item for a specific token
-export async function addToClipboard(token: string, content: string): Promise<ClipboardItem> {
+export async function addToClipboard(token: string, content: string): Promise<ClipboardItem | null> {
   if (!token) {
     throw new Error('Token is required');
   }
   
   try {
+    const clipboardKey = getClipboardKey(token);
+    
+    // Check the most recent item to avoid duplicates
+    const recentItems = await redis.lrange(clipboardKey, 0, 0);
+    if (recentItems.length > 0) {
+      let recentItem: ClipboardItem | null = null;
+      
+      try {
+        // Handle both string and object formats
+        const item = recentItems[0];
+        if (item && typeof item === 'object' && 'content' in item) {
+          recentItem = item as unknown as ClipboardItem;
+        } else if (typeof item === 'string') {
+          recentItem = JSON.parse(item);
+        }
+        
+        // If the content is the same as the most recent item, don't add it again
+        if (recentItem && recentItem.content === content) {
+          console.log('Skipping duplicate clipboard content');
+          return null;
+        }
+      } catch (e) {
+        console.warn('Error checking for duplicate content:', e);
+        // Continue with adding the item if there was an error checking for duplicates
+      }
+    }
+    
     const newItem: ClipboardItem = {
       id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       content: content,
@@ -79,7 +106,6 @@ export async function addToClipboard(token: string, content: string): Promise<Cl
 
     // Ensure we're storing a properly stringified JSON object
     const itemString = JSON.stringify(newItem);
-    const clipboardKey = getClipboardKey(token);
     
     // Add to the beginning of the list
     await redis.lpush(clipboardKey, itemString);

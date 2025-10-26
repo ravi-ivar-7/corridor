@@ -119,7 +119,7 @@ function HomeContent() {
             </h1>
           </div>
           <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-            Seamlessly sync your clipboard across all your devices
+            A simple and efficient solution for sharing text between devices
           </p>
         </div>
 
@@ -197,20 +197,20 @@ function HomeContent() {
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <FeatureCard
             icon={<Share2 className="w-6 h-6" />}
-            title="Easy Sharing"
-            description="Quickly share clipboard content between devices"
+            title="Real-time Sync"
+            description="Instantly share text between devices"
             color="violet"
           />
           <FeatureCard
-            icon={<RefreshCw className="w-6 h-6" />}
-            title="Sync in Real-Time"
-            description="See updates instantly across all connected devices"
+            icon={<Lock className="w-6 h-6" />}
+            title="Token-based Access"
+            description="Generate a token to connect your devices"
             color="indigo"
           />
           <FeatureCard
-            icon={<Zap className="w-6 h-6" />}
-            title="Lightning Fast"
-            description="Minimal delay between copying and pasting"
+            icon={<Smartphone className="w-6 h-6" />}
+            title="No Installation"
+            description="Works directly in your web browser"
             color="cyan"
           />
         </div>
@@ -220,12 +220,15 @@ function HomeContent() {
           <h2 className="text-2xl font-semibold text-center mb-8 text-gray-800">How It Works</h2>
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
-              <Step number={1} title="Generate a unique token" color="indigo" />
+              <Step number={1} title="Generate a Token" color="indigo" />
               <div className="h-1 w-8 bg-indigo-200 rounded-full hidden md:block"></div>
-              <Step number={2} title="Use it on all your devices" color="emerald" />
+              <Step number={2} title="Share the Token" color="emerald" />
               <div className="h-1 w-8 bg-emerald-200 rounded-full hidden md:block"></div>
-              <Step number={3} title="Your clipboard syncs automatically" color="amber" />
+              <Step number={3} title="Start Syncing" color="amber" />
             </div>
+            <p className="text-center text-gray-600 max-w-2xl mx-auto mt-6">
+              Copy on one device, paste on another - it's that simple!
+            </p>
           </div>
         </div>
       </div>
