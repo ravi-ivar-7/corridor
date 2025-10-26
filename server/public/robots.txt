@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://quickerp.rknain.com/sitemap.xml
+
+# Important pages
+Allow: /
+Allow: /faqs
+Allow: /contact
+Allow: /privacy
+
+# Disallow admin or sensitive areas (if any)
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Crawl delay (optional)
+Crawl-delay: 1

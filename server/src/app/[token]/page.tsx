@@ -66,13 +66,6 @@ export default function TokenPage() {
     }, 3000);
   }, []);
 
-  // Clear token from local storage
-  const clearToken = useCallback(() => {
-    localStorage.removeItem('clipboardSyncToken');
-    setToken('');
-    router.replace('/');
-  }, [router]);
-
   // Check connection status
   const checkConnection = useCallback(async () => {
     if (!token) return false;
@@ -191,12 +184,13 @@ export default function TokenPage() {
         body: JSON.stringify({ action: 'clear' })
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
         setClipboardHistory([]);
         showToast('Clipboard history cleared');
       } else {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to clear history');
+        throw new Error(data.error || 'Failed to clear history');
       }
     } catch (error) {
       console.error('Error clearing clipboard history:', error);
@@ -204,7 +198,7 @@ export default function TokenPage() {
     } finally {
       setIsClearing(false);
     }
-  }, [showToast]);
+  }, [token, showToast]);
 
   // Copy content to clipboard
   const copyToClipboard = useCallback((content: string) => {
@@ -291,60 +285,45 @@ export default function TokenPage() {
       </div>
 
       <div className="max-w-7xl mx-auto lg:px-8 2xl:px-12 w-full">
-        <header className="mb-4 sm:mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="w-full max-w-[1800px]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                    Clipboard Sync
-                    <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      <span className={`w-2 h-2 rounded-full mr-1.5 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                      {isOnline ? 'Connected' : 'Offline'}
+        <header className="mb-4">
+          <div className="bg-white/50 backdrop-blur-sm p-2.5 sm:p-3 rounded-lg border border-gray-100 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {/* Left side - Status and Last Synced */}
+              <div className="flex flex-col space-y-1">
+                <span className={`inline-flex items-center w-fit px-2.5 py-0.5 rounded-full text-xs font-medium ${isOnline ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'} border ${isOnline ? 'border-green-100' : 'border-red-100'}`}>
+                  <span className={`w-2 h-2 rounded-full mr-1.5 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  {isOnline ? 'Connected' : 'Offline'}
+                </span>
+                {lastSynced && (
+                  <div className="pl-1">
+                    <span className="text-xs text-gray-600">
+                      Synced: {lastSynced.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                  </h1>
-                  {lastSynced && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      Last synced: {lastSynced.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => router.push('/')}
-                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <ArrowLeft size={14} className="mr-1.5" />
-                    Back to home
-                  </button>
-                </div>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-          
-          <div className="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-blue-700">
-                  Your clipboard token
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center bg-white rounded-md shadow-sm px-3 py-1.5 border border-gray-300">
-                  <span className="font-mono text-sm text-gray-800 truncate max-w-[120px] sm:max-w-xs">
-                    {token}
-                  </span>
+              
+              {/* Right side - Token and Polling */}
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center bg-gray-50 px-2 py-1 rounded-md border border-gray-200">
+                  <span className="text-xs text-gray-600 mr-1">Token:</span>
+                  <span className="text-xs font-mono text-gray-700">{token}</span>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       navigator.clipboard.writeText(token);
-                      showToast('Token copied to clipboard!');
+                      showToast('Copied!');
                     }}
-                    className="ml-2 text-gray-400 hover:text-blue-500 transition-colors"
+                    className="ml-1.5 p-0.5 text-gray-400 hover:text-blue-500 hover:bg-gray-100 rounded"
                     title="Copy token"
                   >
-                    <Copy size={16} />
+                    <Copy size={12} className="shrink-0" />
                   </button>
+                </div>
+                <div className="pl-1 text-right">
+                  <span className="text-xs text-gray-600">
+                    Polling: {POLLING_INTERVAL / 1000}s
+                  </span>
                 </div>
               </div>
             </div>
@@ -371,40 +350,33 @@ export default function TokenPage() {
                 <button
                   type="button"
                   onClick={saveToServer}
-                  disabled={!clipboardContent.trim() || isSaving}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px] flex items-center justify-center"
+                  disabled={isSaving || !clipboardContent.trim()}
+                  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${isSaving || !clipboardContent.trim() ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors`}
                 >
-                  {isSaving ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving...
-                    </>
-                  ) : (
-                    'Save to Clipboard'
-                  )}
+                  {isSaving ? 'Saving...' : 'Save to Cloud'}
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white border-t border-slate-200 w-full">
-          <div className="w-full px-2 py-2 sm:px-4 sm:py-3 flex items-center justify-between bg-slate-50 border-b border-slate-200">
-            <div className="flex items-center">
+        <div className="mt-6 bg-white shadow-sm sm:shadow-md rounded-lg border border-slate-200 overflow-hidden w-full">
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-lg font-medium text-gray-900">Clipboard History</h2>
+            <div className="flex items-center space-x-4">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  clearClipboardHistory();
+                  if (confirm('Are you sure you want to clear all clipboard history? This action cannot be undone.')) {
+                    clearClipboardHistory();
+                  }
                 }}
-                disabled={isClearing || clipboardHistory.length === 0}
-                className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 mr-4"
+                disabled={isClearing || !clipboardHistory.length}
+                className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
               >
                 {isClearing ? (
                   <>
-                    <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -417,35 +389,32 @@ export default function TokenPage() {
                   </>
                 )}
               </button>
+              <button
+                onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
+                className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+                aria-label={isHistoryCollapsed ? 'Expand history' : 'Collapse history'}
+              >
+                {isHistoryCollapsed ? (
+                  <svg 
+                    className="h-5 w-5" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                ) : (
+                  <svg 
+                    className="h-5 w-5" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                )}
+              </button>
             </div>
-            
-            <h2 className="text-lg font-medium text-gray-900">Clipboard History</h2>
-            
-            <button
-              onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
-              className="text-gray-500 hover:text-gray-700"
-              aria-label={isHistoryCollapsed ? 'Expand history' : 'Collapse history'}
-            >
-              {isHistoryCollapsed ? (
-                <svg 
-                  className="h-5 w-5" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              ) : (
-                <svg 
-                  className="h-5 w-5" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-              )}
-            </button>
           </div>
           
           {!isHistoryCollapsed && (

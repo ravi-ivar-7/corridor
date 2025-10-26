@@ -121,11 +121,18 @@ export async function addToClipboard(token: string, content: string): Promise<Cl
 }
 
 // Clear all clipboard history for a specific token
-export async function clearClipboardHistory(token: string): Promise<void> {
+export async function clearClipboardHistory(token: string): Promise<boolean> {
   if (!token) {
     throw new Error('Token is required');
   }
   
-  const clipboardKey = getClipboardKey(token);
-  await redis.del(clipboardKey);
+  try {
+    const clipboardKey = getClipboardKey(token);
+    const result = await redis.del(clipboardKey);
+    // redis.del() returns the number of keys that were removed
+    return result > 0;
+  } catch (error) {
+    console.error('Error clearing clipboard history:', error);
+    throw new Error('Failed to clear clipboard history');
+  }
 }

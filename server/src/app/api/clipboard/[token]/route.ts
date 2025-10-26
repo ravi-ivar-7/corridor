@@ -49,8 +49,15 @@ export async function POST(
     const { content, action } = await request.json();
     
     if (action === 'clear') {
-      await clearClipboardHistory(token);
-      return NextResponse.json({ items: [] });
+      const success = await clearClipboardHistory(token);
+      if (success) {
+        return NextResponse.json({ success: true, items: [] });
+      } else {
+        return NextResponse.json(
+          { success: false, error: 'No clipboard history found or already cleared' },
+          { status: 404 }
+        );
+      }
     }
     
     if (typeof content === 'string' && content.trim()) {

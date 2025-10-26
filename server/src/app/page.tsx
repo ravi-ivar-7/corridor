@@ -6,12 +6,12 @@ import { Copy, RefreshCw, Zap, Lock, Share2, Smartphone, Check, Clipboard } from
 
 const FeatureCard = ({ icon, title, description, color }: { icon: React.ReactNode, title: string, description: string, color: string }) => {
   const colorMap: Record<string, string> = {
-    indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    amber: 'bg-amber-50 text-amber-600 border-amber-100',
-    rose: 'bg-rose-50 text-rose-600 border-rose-100',
-    violet: 'bg-violet-50 text-violet-600 border-violet-100',
-    cyan: 'bg-cyan-50 text-cyan-600 border-cyan-100',
+    indigo: 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200',
+    emerald: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+    amber: 'bg-amber-100 text-amber-700 border-amber-200',
+    rose: 'bg-rose-100 text-rose-700 border-rose-200',
+    violet: 'bg-violet-100 text-violet-700 border-violet-200',
+    cyan: 'bg-sky-100 text-sky-700 border-sky-200',
   };
 
   const bgClass = colorMap[color] || colorMap['indigo'];
@@ -29,12 +29,12 @@ const FeatureCard = ({ icon, title, description, color }: { icon: React.ReactNod
 
 const Step = ({ number, title, color }: { number: number; title: string; color: string }) => {
   const colorMap: Record<string, string> = {
-    indigo: 'text-indigo-600 bg-indigo-50',
-    emerald: 'text-emerald-600 bg-emerald-50',
-    amber: 'text-amber-600 bg-amber-50',
-    rose: 'text-rose-600 bg-rose-50',
-    violet: 'text-violet-600 bg-violet-50',
-    cyan: 'text-cyan-600 bg-cyan-50',
+    indigo: 'text-fuchsia-700 bg-fuchsia-100',
+    emerald: 'text-cyan-700 bg-cyan-100',
+    amber: 'text-amber-700 bg-amber-100',
+    rose: 'text-rose-700 bg-rose-100',
+    violet: 'text-violet-700 bg-violet-100',
+    cyan: 'text-sky-700 bg-sky-100',
   };
 
   const colorClass = colorMap[color] || colorMap['indigo'];
@@ -57,9 +57,9 @@ function HomeContent() {
   
   // Color theme - Subtle and Professional
   const theme = {
-    primary: 'from-indigo-500 to-blue-600',
-    secondary: 'from-slate-600 to-slate-700',
-    accent: 'from-blue-400 to-indigo-500',
+    primary: 'from-fuchsia-500 to-pink-600',
+    secondary: 'from-purple-600 to-indigo-600',
+    accent: 'from-cyan-400 to-sky-500',
     success: 'from-emerald-400 to-teal-500',
     warning: 'from-amber-400 to-orange-400',
   };
@@ -104,16 +104,12 @@ function HomeContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-3">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3">
       <div className="w-full max-w-6xl mx-auto">
         {/* Hero Section */}
         <div className="text-center py-4 sm:py-8 md:py-12">
           <div className="flex items-center justify-center gap-4 mb-4 md:mb-6">
-            <img 
-              src="/window.svg" 
-              alt="Clipboard Sync Logo" 
-              className="w-12 h-12 md:w-16 md:h-16"
-            />
+    
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900">
               Clipboard Sync
             </h1>
@@ -124,7 +120,7 @@ function HomeContent() {
         </div>
 
         {/* Main Card */}
-        <div className="w-full bg-gradient-to-br from-indigo-50 to-blue-50 p-6 sm:p-8 mb-6 sm:mb-12 rounded-xl border-2 border-blue-100 shadow-lg">
+        <div className="w-full bg-gradient-to-br from-fuchsia-50 to-pink-50 p-6 sm:p-8 mb-6 sm:mb-12 rounded-xl border-2 border-fuchsia-100 shadow-lg">
           <div className="text-center space-y-1 mb-8">
             <h2 className="text-3xl font-bold text-gray-900">
               Access Your Clipboard
@@ -216,7 +212,7 @@ function HomeContent() {
         </div>
 
         {/* How It Works */}
-        <div className="w-full bg-white/80 backdrop-blur-sm p-4 sm:p-6 border-t border-gray-100">
+        <div className="w-full bg-white/90 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm">
           <h2 className="text-2xl font-semibold text-center mb-8 text-gray-800">How It Works</h2>
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
@@ -232,11 +228,6 @@ function HomeContent() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="mt-16 text-center text-gray-500 text-sm">
-        <p>© {new Date().getFullYear()} Clipboard Sync. All rights reserved.</p>
-      </footer>
     </div>
   );
 }

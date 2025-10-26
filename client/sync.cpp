@@ -2,15 +2,15 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <wininet.h>
-#include <ole2.h>           // For OleInitialize
+#include <ole2.h>           
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <cstring>
-#include <process.h>       // For _beginthreadex
-#include <conio.h>         // For _getch()
-#include <time.h>          // For time functions
+#include <process.h>     
+#include <conio.h>         
+#include <time.h>        
 
 #pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "user32.lib")
@@ -19,25 +19,21 @@
 
 using namespace std;
 
-// Global variables
 string lastClipboard = "";
 bool ignoreNextUpdate = false;
-bool updatingFromServer = false;  // Flag to track server updates
+bool updatingFromServer = false; 
 CRITICAL_SECTION cs;  // Critical section for thread safety
 bool running = true;  // Global flag to control threads
-
-// Configuration parameters with defaults
-string SERVER = "localhost";
-int PORT = 443;  // Default HTTPS port
+ 
+string SERVER = "sync.rknain.com";
+int PORT = 443;  
 string TOKEN = "";
-int POLLING_INTERVAL_MS = 5000;  // Default 5 second
-bool DEBUG_MODE = false;  // Default to quiet mode
+int POLLING_INTERVAL_MS = 5000; 
+bool DEBUG_MODE = false; 
 
-// Derived values
 string API_BASE_PATH = "/api/clipboard";
 string FULL_API_PATH = "";
 
-// Always show these messages, regardless of debug mode
 void logMessage(const string& message) {
     time_t now;
     time(&now);
@@ -48,13 +44,11 @@ void logMessage(const string& message) {
     cout << "[" << time_str << "] " << message << endl;
 }
 
-// Debug logging - only shows in non-quiet mode
 void debugLog(const string& message) {
     if (!DEBUG_MODE) return;
     logMessage("[DEBUG] " + message);
 }
 
-// Clipboard functions
 string getClipboardText() {
     if (!OpenClipboard(nullptr)) {
         debugLog("Error: Failed to open clipboard");
@@ -103,21 +97,18 @@ void setClipboardText(const string& text) {
         }
     }
     
-    // Ensure the string is not empty after cleaning
     if (cleanText.empty()) {
         debugLog("Error: Text is empty after cleaning");
         return;
     }
     
     debugLog("Cleaned text length: " + to_string(cleanText.length()));
-
-    // Initialize COM for clipboard
+ 
     if (FAILED(OleInitialize(NULL))) {
         debugLog("Error: Failed to initialize COM");
         return;
     }
 
-    // Try to open the clipboard (with retry logic)
     int attempts = 0;
     const int maxAttempts = 5;
     bool clipboardOpened = false;
@@ -125,7 +116,7 @@ void setClipboardText(const string& text) {
     while (attempts < maxAttempts && !(clipboardOpened = OpenClipboard(NULL))) {
         DWORD error = GetLastError();
         debugLog("Attempt " + to_string(attempts + 1) + " - Failed to open clipboard. Error: " + to_string(error));
-        Sleep(100); // Wait 100ms before retrying
+        Sleep(100); 
         attempts++;
     }
     
@@ -136,7 +127,6 @@ void setClipboardText(const string& text) {
     }
     debugLog("1. Opened clipboard successfully");
 
-    // Empty the clipboard
     if (!EmptyClipboard()) {
         DWORD error = GetLastError();
         debugLog("Error: Failed to empty clipboard. Error: " + to_string(error));
@@ -146,7 +136,6 @@ void setClipboardText(const string& text) {
     }
     debugLog("2. Emptied clipboard");
 
-    // Allocate global memory for the text
     size_t bufferSize = cleanText.length() + 1; // +1 for null terminator
     HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, bufferSize);
     if (!hMem) {
@@ -166,24 +155,20 @@ void setClipboardText(const string& text) {
         OleUninitialize();
         return;
     }
-    
-    // Copy the cleaned text to the global memory
+     
     strncpy(pMem, cleanText.c_str(), cleanText.length());
-    pMem[cleanText.length()] = '\0'; // Ensure null termination
+    pMem[cleanText.length()] = '\0';  
     
     GlobalUnlock(hMem);
     debugLog("4. Copied text to memory");
 
-    // Set the clipboard data
     if (!SetClipboardData(CF_TEXT, hMem)) {
         DWORD error = GetLastError();
         debugLog("Error: Failed to set clipboard data. Error: " + to_string(error));
         GlobalFree(hMem);
     } else {
-        debugLog("5. Successfully set clipboard data");
-        // The system now owns the memory, don't free it
+        debugLog("5. Successfully set clipboard data"); 
         
-        // Verify the clipboard content
         if (IsClipboardFormatAvailable(CF_TEXT)) {
             HANDLE hData = GetClipboardData(CF_TEXT);
             if (hData) {
@@ -197,13 +182,11 @@ void setClipboardText(const string& text) {
         }
     }
 
-    // Clean up
     CloseClipboard();
     OleUninitialize();
     debugLog("=== Clipboard update completed ===");
 }
 
-// Build the full API URL with token
 void buildApiPath() {
     ostringstream oss;
     oss << API_BASE_PATH << "/" << TOKEN;
@@ -211,13 +194,11 @@ void buildApiPath() {
     debugLog("API Endpoint: http://" + SERVER + ":" + to_string(PORT) + FULL_API_PATH);
 }
 
-// HTTP functions
 string httpRequest(const string& method, const string& path, const string& body = "") {
     string protocol = (PORT == 443) ? "https://" : "http://";
     string fullUrl = protocol + SERVER + ":" + to_string(PORT) + path;
     debugLog(string("HTTP ") + method + " request to: " + fullUrl);
     
-    // Initialize WinINet
     HINTERNET hInternet = InternetOpenA("ClipboardSync/1.0", 
                                       INTERNET_OPEN_TYPE_DIRECT, 
                                       NULL, 
@@ -230,13 +211,12 @@ string httpRequest(const string& method, const string& path, const string& body 
     }
 
     // Set timeouts (15 seconds for connection, 30 seconds for send/receive)
-    DWORD timeout = 15000; // 15 seconds
+    DWORD timeout = 15000; 
     InternetSetOptionA(hInternet, INTERNET_OPTION_CONNECT_TIMEOUT, &timeout, sizeof(timeout));
-    timeout = 30000; // 30 seconds
+    timeout = 30000; 
     InternetSetOptionA(hInternet, INTERNET_OPTION_RECEIVE_TIMEOUT, &timeout, sizeof(timeout));
     InternetSetOptionA(hInternet, INTERNET_OPTION_SEND_TIMEOUT, &timeout, sizeof(timeout));
 
-    // Connect to server
     HINTERNET hConnect = InternetConnectA(hInternet, 
                                         SERVER.c_str(), 
                                         PORT, 
@@ -252,7 +232,6 @@ string httpRequest(const string& method, const string& path, const string& body 
         return "";
     }
 
-    // Create request
     const char* acceptTypes[] = {"application/json", "*/*", NULL};
     DWORD flags = INTERNET_FLAG_RELOAD | INTERNET_FLAG_NO_CACHE_WRITE | 
                  INTERNET_FLAG_KEEP_CONNECTION;
@@ -277,7 +256,6 @@ string httpRequest(const string& method, const string& path, const string& body 
         return "";
     }
 
-    // Add headers
     string headers = "Content-Type: application/json\r\n";
     if (!HttpAddRequestHeadersA(hRequest, headers.c_str(), headers.length(), 
                               HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE)) {
@@ -285,10 +263,9 @@ string httpRequest(const string& method, const string& path, const string& body 
         debugLog("Warning: Failed to add request headers: " + to_string(error));
     }
 
-    // Send request
     BOOL requestSent = HttpSendRequestA(hRequest, 
-                                      NULL,  // Additional headers (already set)
-                                      0,     // Headers length
+                                      NULL,  
+                                      0,     
                                       body.empty() ? NULL : (LPVOID)body.c_str(), 
                                       body.length());
     
@@ -301,7 +278,6 @@ string httpRequest(const string& method, const string& path, const string& body 
         return "";
     }
 
-    // Check HTTP status code
     DWORD statusCode = 0;
     DWORD statusCodeSize = sizeof(statusCode);
     if (!HttpQueryInfoA(hRequest, 
@@ -319,7 +295,6 @@ string httpRequest(const string& method, const string& path, const string& body 
         return "";
     }
 
-    // Read response
     string response;
     const DWORD BUFFER_SIZE = 4096;
     char buffer[BUFFER_SIZE];
@@ -333,7 +308,7 @@ string httpRequest(const string& method, const string& path, const string& body 
         }
         
         if (bytesRead == 0) {
-            break; // End of response
+            break; 
         }
         
         buffer[bytesRead] = '\0';
@@ -342,7 +317,6 @@ string httpRequest(const string& method, const string& path, const string& body 
     
     debugLog("HTTP " + to_string(statusCode) + " - Response length: " + to_string(response.length()));
 
-    // Clean up
     InternetCloseHandle(hRequest);
     InternetCloseHandle(hConnect);
     InternetCloseHandle(hInternet);
@@ -350,7 +324,6 @@ string httpRequest(const string& method, const string& path, const string& body 
     return response;
 }
 
-// Simple JSON unescape
 string unescapeJsonString(const string& input) {
     string output;
     for (size_t i = 0; i < input.length(); i++) {
@@ -368,7 +341,6 @@ string unescapeJsonString(const string& input) {
     return output;
 }
 
-// Thread function to monitor local clipboard changes
 unsigned __stdcall clipboardThread(void* param) {
     (void)param;
     string lastLocalClipboard = getClipboardText();
@@ -379,14 +351,11 @@ unsigned __stdcall clipboardThread(void* param) {
         if (!currentClipboard.empty() && currentClipboard != lastLocalClipboard && !updatingFromServer) {
             debugLog("Local clipboard changed: " + currentClipboard);
             
-            // Update last clipboard to prevent duplicate updates
             lastLocalClipboard = currentClipboard;
             lastClipboard = currentClipboard;
             
-            // Send to server
             debugLog("Local change detected, sending to server...");
             
-            // Build JSON body with proper escaping
             string jsonBody = "{\"content\":\"";
             for (char c : currentClipboard) {
                 // Handle special characters in JSON
@@ -400,7 +369,6 @@ unsigned __stdcall clipboardThread(void* param) {
                     case '\r': jsonBody += "\\r"; break;
                     case '\t': jsonBody += "\\t"; break;
                     default:
-                        // Escape control characters
                         if (c < ' ') {
                             char buf[10];
                             snprintf(buf, sizeof(buf), "\\u%04x", (unsigned char)c);
@@ -414,7 +382,6 @@ unsigned __stdcall clipboardThread(void* param) {
             
             debugLog("Sending to server: " + jsonBody);
             
-            // Send to server with retry logic
             bool success = false;
             int retryCount = 0;
             const int maxRetries = 3;
@@ -429,7 +396,7 @@ unsigned __stdcall clipboardThread(void* param) {
                     retryCount++;
                     if (retryCount < maxRetries) {
                         debugLog("Failed to update server, retrying (" + to_string(retryCount) + "/" + to_string(maxRetries) + ")");
-                        Sleep(1000); // Wait 1 second before retry
+                        Sleep(1000); 
                     } else {
                         logMessage("Error: Failed to update server after " + to_string(maxRetries) + " attempts");
                     }
@@ -437,12 +404,11 @@ unsigned __stdcall clipboardThread(void* param) {
             }
         }
         
-        Sleep(100); // Check every 100ms
+        Sleep(100); 
     }
     return 0;
 }
 
-// Server polling thread
 unsigned __stdcall serverThread(void* param) {
     (void)param;
     while (running) {
@@ -453,7 +419,6 @@ unsigned __stdcall serverThread(void* param) {
                 continue;
             }
             
-            // Simple JSON parsing
             debugLog("Server response: " + response);
             size_t content_pos = response.find("content\":\"");
             if (content_pos == string::npos) {
@@ -463,7 +428,7 @@ unsigned __stdcall serverThread(void* param) {
             }
             
             size_t start = content_pos + 10; // Length of "content\":\""
-            size_t end = response.find('"', start); // Find the closing quote
+            size_t end = response.find('"', start);  
             
             if (end == string::npos) {
                 debugLog("Invalid content format - missing closing quote");
@@ -480,7 +445,6 @@ unsigned __stdcall serverThread(void* param) {
                 debugLog("Server has new content, updating clipboard...");
                 updatingFromServer = true;
                 
-                // Update clipboard
                 setClipboardText(content);
                 lastClipboard = content;
                 
@@ -491,7 +455,7 @@ unsigned __stdcall serverThread(void* param) {
             debugLog(string("Server error: ") + e.what());
         }
         
-        Sleep(POLLING_INTERVAL_MS); // Use configured polling interval
+        Sleep(POLLING_INTERVAL_MS); 
     }
 }
 
@@ -507,7 +471,6 @@ void showUsage(const char* programName) {
 }
 
 int main(int argc, char* argv[]) {
-    // Parse command line arguments
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
         if (arg == "-h" || arg == "--host") {
@@ -534,13 +497,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Validate required parameters
     if (TOKEN.empty()) {
         logMessage("Error: Token is required. Use --help for usage information.");
         return 1;
     }
-
-    // Build the API path with token
     buildApiPath();
     logMessage("Clipboard Sync Client Started");
     if (DEBUG_MODE) {
@@ -549,10 +509,8 @@ int main(int argc, char* argv[]) {
         debugLog("Polling Interval: " + to_string(POLLING_INTERVAL_MS) + "ms");
     }
     
-    // Initialize critical section
     InitializeCriticalSection(&cs);
     
-    // Initialize COM for clipboard operations
     if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) {
         debugLog("Error: Failed to initialize COM");
         return 1;
@@ -568,17 +526,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Wait for a key press to exit
     debugLog("Press any key to exit...");
     _getch();
     
-    // Signal threads to exit
     running = false;
     
     // Wait for threads to finish
     WaitForMultipleObjects(2, hThreads, TRUE, INFINITE);
     
-    // Cleanup
     CloseHandle(hThreads[0]);
     CloseHandle(hThreads[1]);
     DeleteCriticalSection(&cs);
