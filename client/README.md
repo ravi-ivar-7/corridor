@@ -116,10 +116,65 @@ Options:
    sync.exe -h sync.rknain.com -t token_nr75nih4t -i 10000 -q
    ```
 
-6. Run as a background process (Windows):
+6. **Run as a background process (Windows)**
+
+   **Method 1: Using start command (temporary)**
    ```bash
    start /B sync.exe -t my-secret-token -q
    ```
+
+   **Method 2: Using VBS script (persistent, no console window)**
+
+   - **Step 1: Create a VBS file**
+     Create a file named `run_sync.vbs` with this content:
+     ```vbs
+     Set WshShell = CreateObject("WScript.Shell")
+     WshShell.Run "path\to\sync.exe -h sync.rknain.com -t YOUR_TOKEN -i 10000 -q", 0, False
+     ```
+
+   - **Step 2: Run the VBS script**
+     Choose one of these methods:
+     - Double-click the `run_sync.vbs` file, or
+     - Run from Command Prompt:
+       ```cmd
+       wscript "path\to\run_sync.vbs"
+       ```
+     - Or from PowerShell:
+       ```powershell
+       Start-Process wscript.exe -ArgumentList "`"path\to\run_sync.vbs`""
+       ```
+
+   - **Step 3: Verify it's running**
+     - Open Task Manager (Ctrl+Shift+Esc)
+     - Go to the "Details" tab
+     - Look for `sync.exe` in the process list
+## Running at Startup (Windows)
+
+To make the sync client start automatically when you log in:
+
+1. **Using VBS Script (Recommended)**:
+   - Create a file named `run_sync.vbs` with this content:
+     ```vbs
+     Set WshShell = CreateObject("WScript.Shell")
+     WshShell.Run "path\to\sync.exe -h sync.rknain.com -t YOUR_TOKEN -i 10000 -q", 0, False
+     ```
+   - Press `Win + R`, type `shell:startup` and press Enter
+   - Copy the VBS file to this Startup folder
+
+2. **Using Task Scheduler** (for more control):
+   ```powershell
+   $action = New-ScheduledTaskAction -Execute "path\to\sync.exe" -Argument "-h sync.rknain.com -t YOUR_TOKEN -i 10000 -q"
+   $trigger = New-ScheduledTaskTrigger -AtLogOn
+   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+   Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "ClipboardSync" -Settings $settings -RunLevel Highest -Force
+   ```
+
+## Verifying the Sync Client is Running
+
+1. Open Task Manager (Ctrl+Shift+Esc)
+2. Go to the "Details" tab
+3. Look for `sync.exe/sync` in the list or background tasks
+
 ## Security
 
 - The token is required for authentication and should be kept secret
