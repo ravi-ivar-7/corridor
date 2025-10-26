@@ -36,4 +36,4 @@ server/.env.local
 client/clipboard_sync.exe
 client/build/
 
-# choco-master
+choco-master
