@@ -1,0 +1,271 @@
+'use client';
+
+import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+import { Home, BookOpen, ChevronDown, Menu, X, ExternalLink, Info, Copy, Send, Github, Twitter, List, FileText } from 'lucide-react';
+
+export default function Header() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isBlogsOpen, setIsBlogsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleBlogs = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsBlogsOpen(!isBlogsOpen);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsBlogsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full">
+          <div className="flex items-center justify-between h-full">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors duration-200">
+                <img 
+                  src="/window.svg" 
+                  alt="Clipboard Sync" 
+                  className="h-4 w-4 text-blue-600" 
+                />
+              </div>
+              <span className="text-base font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">
+                Clipboard Sync
+              </span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-3">
+            <Link 
+              href="/" 
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                pathname === '/' 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50/50'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Home className={`h-4 w-4 ${pathname === '/' ? 'text-blue-500' : 'text-blue-400 group-hover:text-blue-500'}`} />
+                Home
+              </span>
+            </Link>
+
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={toggleBlogs}
+                onMouseEnter={() => setIsBlogsOpen(true)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isBlogsOpen || pathname.startsWith('/blogs')
+                    ? 'text-blue-600 bg-white/30 border-blue-200 shadow-lg shadow-blue-500/20' 
+                    : 'text-slate-700/80 hover:text-slate-900 hover:bg-white/30 border-white/20 hover:border-white/40 hover:shadow-lg hover:shadow-blue-500/20'
+                }`}
+              >
+                <BookOpen className={`h-4 w-4 ${isBlogsOpen || pathname.startsWith('/blogs') ? 'text-blue-500' : 'text-slate-500'}`} />
+                Blogs
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBlogsOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isBlogsOpen && (
+                <div 
+                  className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-xl border border-white/40 shadow-2xl shadow-black/20 overflow-hidden z-50"
+                  onMouseEnter={() => setIsBlogsOpen(true)}
+                  onMouseLeave={() => setIsBlogsOpen(false)}
+                >
+                  <Link
+                    href="/blogs"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <BookOpen className="w-4 h-4 text-purple-500" />
+                    All Blogs
+                  </Link>
+                  <Link
+                    href="/blogs/what-is-clipboard-sync"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <span className="w-4 h-4 text-blue-500">❓</span>
+                    What is it?
+                  </Link>
+                  <Link
+                    href="/blogs/how-to-use"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <span className="w-4 h-4 text-emerald-500">🛠️</span>
+                    How to Use
+                  </Link>
+                  <Link
+                    href="/blogs/use-cases"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <span className="w-4 h-4 text-purple-500">💡</span>
+                    Use Cases
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <Link 
+              href="/about" 
+              className={`flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-slate-50/80 rounded-lg transition-colors ${
+                pathname === '/about'
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Info className="h-4 w-4 text-slate-500" />
+                About
+              </span>
+            </Link>
+            </nav>
+            
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+            <button
+              onClick={toggleMenu}
+              className="p-2.5 rounded-xl bg-white/30 border border-slate-200 text-slate-600 hover:bg-white/50 hover:text-slate-900 transition-all duration-200"
+              aria-expanded="false"
+            >
+              <span className="sr-only">Open main menu</span>
+              {isOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+            </div>
+          </div>
+        </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-inner z-50">
+          <div className="space-y-1 p-2">
+            <Link
+              href="/"
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                pathname === '/' 
+                  ? 'bg-blue-50 text-blue-600' 
+                  : 'text-slate-700 hover:bg-slate-50/80'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              <Home className="h-5 w-5 mr-3 text-blue-500 flex-shrink-0" />
+              <span>Home</span>
+            </Link>
+            
+            <div className="space-y-1">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsBlogsOpen(!isBlogsOpen);
+                }}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg ${
+                  pathname.startsWith('/blogs')
+                    ? 'bg-blue-50 text-blue-600' 
+                    : 'text-slate-700 hover:bg-slate-50/80'
+                }`}
+              >
+                <div className="flex items-center">
+                  <BookOpen className="h-5 w-5 mr-3 text-purple-500" />
+                  <span>Blogs</span>
+                </div>
+                <ChevronDown className={`h-5 w-5 transition-transform ${isBlogsOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-200 ${isBlogsOpen ? 'max-h-40' : 'max-h-0'}`}>
+                <div className="pl-4 space-y-1 py-1">
+                  <Link
+                    href="/blogs"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsBlogsOpen(false);
+                    }}
+                  >
+                    <List className="h-4 w-4 mr-3 text-slate-400" />
+                    All Posts
+                  </Link>
+                  <Link
+                    href="/blogs/what-is-clipboard-sync"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsBlogsOpen(false);
+                    }}
+                  >
+                    <span className="w-4 h-4 mr-3 text-blue-500">❓</span>
+                    What is it?
+                  </Link>
+                  <Link
+                    href="/blogs/how-to-use"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsBlogsOpen(false);
+                    }}
+                  >
+                    <span className="w-4 h-4 mr-3 text-emerald-500">🛠️</span>
+                    How to Use
+                  </Link>
+                  <Link
+                    href="/blogs/use-cases"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsBlogsOpen(false);
+                    }}
+                  >
+                    <span className="w-4 h-4 mr-3 text-purple-500">💡</span>
+                    Use Cases
+                  </Link>
+                </div>
+              </div>
+            </div>
+            
+            <Link
+              href="/about"
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                pathname === '/about'
+                  ? 'bg-emerald-50 text-emerald-600' 
+                  : 'text-slate-700 hover:bg-slate-50/80'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              <Info className="h-5 w-5 mr-3 text-emerald-500 flex-shrink-0" />
+              <span>About</span>
+            </Link>
+          </div>
+        </div>
+      )}
+      </header>
+      {/* Add minimal padding to prevent content from being hidden under the header */}
+      <div className="pt-16"></div>
+    </>
+  );
+}

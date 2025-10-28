@@ -1,6 +1,6 @@
-# Environment variables
+# # Environment variables
 .env
-.env.local
+# .env.local
 
 # Node modules
 node_modules/
