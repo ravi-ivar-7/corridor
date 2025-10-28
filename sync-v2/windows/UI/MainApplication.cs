@@ -23,8 +23,8 @@ namespace ClipboardSyncClient.UI
                 configManager = new ConfigManager();
                 var config = configManager.LoadConfig();
                 
-                // No notifications in background mode
-                notificationManager = new NotificationManager(false);
+                // Initialize notifications based on background mode
+                notificationManager = new NotificationManager(!config.RunInBackground);
                 
                 // Only initialize tray icon if not running in background
                 if (!config.RunInBackground)
@@ -46,12 +46,13 @@ namespace ClipboardSyncClient.UI
             trayIcon = new NotifyIcon
             {
                 Icon = SystemIcons.Application,
-                Text = "Clipboard Sync - Disconnected",
+                Text = "Clipboard Sync - Disconnected\nRight-click for menu",
                 Visible = true
             };
 
             CreateTrayMenu();
             trayIcon.ContextMenuStrip = trayMenu;
+            trayIcon.MouseClick += TrayIcon_MouseClick;
             trayIcon.DoubleClick += TrayIcon_DoubleClick;
         }
 
@@ -150,23 +151,23 @@ namespace ClipboardSyncClient.UI
                 {
                     case ConnectionState.Connected:
                         trayIcon.Icon = SystemIcons.Shield;
-                        trayIcon.Text = "Clipboard Sync - Connected";
+                        trayIcon.Text = "Clipboard Sync - Connected\nRight-click for menu";
                         break;
                     case ConnectionState.Connecting:
                         trayIcon.Icon = SystemIcons.Warning;
-                        trayIcon.Text = "Clipboard Sync - Connecting...";
+                        trayIcon.Text = "Clipboard Sync - Connecting...\nRight-click for menu";
                         break;
                     case ConnectionState.Disconnected:
                         trayIcon.Icon = SystemIcons.Error;
-                        trayIcon.Text = "Clipboard Sync - Disconnected";
+                        trayIcon.Text = "Clipboard Sync - Disconnected\nRight-click for menu";
                         break;
                     case ConnectionState.HttpFallback:
                         trayIcon.Icon = SystemIcons.Information;
-                        trayIcon.Text = "Clipboard Sync - HTTP Fallback";
+                        trayIcon.Text = "Clipboard Sync - HTTP Fallback\nRight-click for menu";
                         break;
                     case ConnectionState.Error:
                         trayIcon.Icon = SystemIcons.Error;
-                        trayIcon.Text = "Clipboard Sync - Error";
+                        trayIcon.Text = "Clipboard Sync - Error\nRight-click for menu";
                         break;
                 }
 
@@ -203,6 +204,18 @@ namespace ClipboardSyncClient.UI
             catch (Exception ex)
             {
                 // Silent error handling - no notifications in background mode
+            }
+        }
+
+        private void TrayIcon_MouseClick(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                // Show context menu on right click
+                if (trayMenu != null)
+                {
+                    trayMenu.Show(Cursor.Position);
+                }
             }
         }
 
