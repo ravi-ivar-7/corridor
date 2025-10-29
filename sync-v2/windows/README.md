@@ -16,6 +16,29 @@ A real-time clipboard synchronization application that allows you to sync clipbo
 - .NET 9.0 SDK (for development)
 - Windows 10/11 (for running the application)
 
+## Quick Start
+
+### **Build and Run:(Run from root dir)**
+```bash
+# Build optimized executable (no signing)
+scripts\build.bat
+
+# Build and sign executable
+scripts\build-and-sign.bat
+
+# Run the application
+publish\Corridor.exe
+```
+
+### **Development:**
+```bash
+# Build for development
+dotnet build --configuration Release
+
+# Run in development mode
+dotnet run
+```
+
 ## Building the Application
 
 ### Development Build (Framework-Dependent)
@@ -217,6 +240,33 @@ dotnet publish --configuration Release --self-contained true --runtime win-x64 -
 ```
 
 Distribute the entire `publish` folder.
+
+## Code Signing (Prevent Antivirus False Positives)
+
+To prevent Windows Defender and other antivirus software from flagging your executable as a virus:
+
+### **Option 1: Self-Signed Certificate (Free)**
+```bash
+# Build and sign in one command
+scripts\build-and-sign.bat
+
+# Or manually with PowerShell
+powershell -ExecutionPolicy Bypass -File "scripts\build.ps1" -Sign
+
+# Or just sign an existing build
+scripts\sign.bat
+```
+
+### **Option 2: Commercial Code Signing Certificate**
+1. Purchase a certificate from DigiCert, Sectigo, or GlobalSign
+2. Install the certificate in Windows Certificate Store
+3. Use signtool to sign:
+```bash
+signtool sign /f "certificate.pfx" /p "password" /t http://timestamp.digicert.com "Corridor.exe"
+```
+
+### **Option 3: Assembly Signing (Not Used)**
+Assembly signing is disabled as it's not needed for self-contained executables.
 
 ## Build Outputs
 

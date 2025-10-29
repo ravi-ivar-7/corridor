@@ -18,6 +18,15 @@ bin/
 obj/
 *.user
 *.suo
+
+# Build outputs
+publish/
+publish-*/
+scripts/Corridor.pfx
+
+# Temporary files
+*.tmp
+*.temp
 *.userosscache
 *.sln.docstates
 *.userprefs
