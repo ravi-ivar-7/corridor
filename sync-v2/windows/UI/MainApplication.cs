@@ -43,8 +43,17 @@ namespace ClipboardSyncClient.UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize application: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Application.Exit();
+                // In background mode, don't show GUI dialogs
+                if (config.RunInBackground)
+                {
+                    // Just exit silently in background mode
+                    Application.Exit();
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to initialize application: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
+                }
             }
         }
 
@@ -176,16 +185,24 @@ namespace ClipboardSyncClient.UI
                     }
                     catch (Exception ex)
                     {
-                        SynchronizationContext.Current?.Post(_ => 
+                        // In background mode, don't show GUI dialogs
+                        if (!config.RunInBackground)
                         {
-                            MessageBox.Show($"Connection failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }, null);
+                            SynchronizationContext.Current?.Post(_ => 
+                            {
+                                MessageBox.Show($"Connection failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }, null);
+                        }
                     }
                 });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to initialize connection: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // In background mode, don't show GUI dialogs
+                if (!config.RunInBackground)
+                {
+                    MessageBox.Show($"Failed to initialize connection: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
@@ -308,7 +325,11 @@ namespace ClipboardSyncClient.UI
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to connect: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // In background mode, don't show GUI dialogs
+                    if (!config.RunInBackground)
+                    {
+                        MessageBox.Show($"Failed to connect: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
@@ -323,7 +344,11 @@ namespace ClipboardSyncClient.UI
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to disconnect: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // In background mode, don't show GUI dialogs
+                    if (!config.RunInBackground)
+                    {
+                        MessageBox.Show($"Failed to disconnect: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }

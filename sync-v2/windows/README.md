@@ -1,4 +1,4 @@
-# Clipboard Sync Client
+# Corridor
 
 A real-time clipboard synchronization application that allows you to sync clipboard content across devices.
 
@@ -30,7 +30,7 @@ dotnet build --configuration Debug
 dotnet build --configuration Release
 ```
 
-**Output:** `bin/Release/net9.0-windows/ClipboardClient.exe`
+**Output:** `bin/Release/net9.0-windows/Corridor.exe`
 
 ### Self-Contained Deployment (No .NET Required)
 
@@ -41,7 +41,7 @@ For distribution to machines without .NET installed:
 dotnet publish --configuration Release --self-contained true --runtime win-x64 --output ./publish
 ```
 
-**Output:** `publish/ClipboardClient.exe` + all required DLLs
+**Output:** `publish/Corridor.exe` + all required DLLs
 **Size:** ~100-120 MB
 **Requirements:** None - runs on any Windows machine
 
@@ -50,7 +50,7 @@ dotnet publish --configuration Release --self-contained true --runtime win-x64 -
 dotnet publish --configuration Release --self-contained true --runtime win-x64 --output ./publish --p:PublishSingleFile=true
 ```
 
-**Output:** `publish-single/ClipboardClient.exe` (single file)
+**Output:** `publish-single/Corridor.exe` (single file)
 **Size:** ~100-120 MB
 **Requirements:** None - runs on any Windows machine
 
@@ -59,8 +59,17 @@ dotnet publish --configuration Release --self-contained true --runtime win-x64 -
 dotnet publish --configuration Release --self-contained true --runtime win-x64 --output ./publish --p:PublishSingleFile=true --p:DebugType=None
 ```
 
-**Output:** `publish/ClipboardClient.exe` (single file, no .pdb)
-**Size:** ~100-120 MB
+**Output:** `publish/Corridor.exe` (single file, no .pdb)
+**Size:** ~150-200 MB
+**Requirements:** None - runs on any Windows machine
+
+#### Option 4: Optimized Single-File (Recommended for Distribution)
+```bash
+dotnet publish --configuration Release --self-contained true --runtime win-x64 --output ./publish --p:PublishSingleFile=true --p:DebugType=None --p:EnableCompressionInSingleFile=true --p:IncludeNativeLibrariesForSelfExtract=true --p:IlcOptimizationPreference=Size
+```
+
+**Output:** `publish/Corridor.exe` (single file, optimized)
+**Size:** ~50 MB (70% smaller!)
 **Requirements:** None - runs on any Windows machine
 
 ### Other Build Options
@@ -116,10 +125,64 @@ Configuration is managed through the `ConfigManager` class and can be modified t
 
 ## Usage
 
-1. **First Run:** The application will show a setup window to configure connection settings
-2. **Main Application:** After configuration, the main application window will appear
-3. **System Tray:** The application runs in the system tray for background operation
-4. **Hotkeys:** Global hotkeys can be configured for quick access
+### Normal Operation
+**Every time you run the application:**
+1. **Instance Check:** Checks if another instance is already running
+2. **Setup Window:** Always shows first to configure settings
+3. **User Choice:** Select normal mode or background mode
+4. **Application Start:** Runs based on your selection
+
+### Multiple Instance Prevention
+The application prevents multiple instances from running simultaneously:
+- **If another instance is running:** Shows a dialog asking to terminate existing process or cancel
+- **User can choose:** Terminate existing process and start new one, or cancel
+- **Automatic restart:** After terminating existing processes, the new instance starts automatically
+
+### Background Mode (Silent Operation)
+The application supports two ways to run in background mode:
+
+#### Method 1: Setup Window Configuration (Normal Usage)
+1. Run the application: `Corridor.exe`
+2. **Setup window appears** (every time)
+3. In the setup window, check **"Run in Background (No Disturbance, No Tray Icon, Silent Mode)"**
+4. Save the configuration
+5. The application will run completely silently in the background
+6. **Next time you run:** Setup window appears again (you can change settings)
+
+#### Method 2: Command Line Silent Mode (Bypass Setup)
+For completely silent operation without showing setup window:
+
+```bash
+# Command line silent mode (bypasses setup window)
+Corridor.exe --silent
+# or
+Corridor.exe --background
+# or
+Corridor.exe /silent
+# or
+Corridor.exe /background
+```
+
+**Windows Batch File:**
+```batch
+# Use the included run-silent.bat file
+run-silent.bat
+```
+
+**Background Mode Features:**
+- ✅ No main application window
+- ✅ No system tray icon
+- ✅ No visible GUI elements
+- ✅ Runs completely in background
+- ✅ Clipboard synchronization still works
+- ✅ Auto-reconnect functionality active
+- ✅ Hotkeys still work (if configured)
+
+**Normal Mode Features:**
+- ✅ Main application window
+- ✅ System tray icon
+- ✅ Full GUI interface
+- ✅ Easy access to settings
 
 ## Development
 
@@ -163,6 +226,7 @@ Distribute the entire `publish` folder.
 | Release | `dotnet build --configuration Release` | `bin/Release/net9.0-windows/` | ~5 MB | .NET 9.0 |
 | Self-Contained | `dotnet publish --self-contained true` | `publish/` | ~150-200 MB | None |
 | Single File | `dotnet publish --self-contained true --p:PublishSingleFile=true` | `publish-single/` | ~150-200 MB | None |
+| **Optimized** | `dotnet publish --self-contained true --p:PublishSingleFile=true --p:EnableCompressionInSingleFile=true` | `publish-optimized/` | **~50 MB** | None |
 
 ## Troubleshooting
 
