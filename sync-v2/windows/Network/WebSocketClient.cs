@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -14,6 +16,8 @@ namespace ClipboardSyncClient.Network
         private CancellationTokenSource? cancellationTokenSource;
         private bool isConnected = false;
         private bool disposed = false;
+        private readonly List<byte> messageBuffer = new List<byte>();
+        private int bufferSize = 65536; // Default 64KB
 
         public event EventHandler<string>? MessageReceived;
         public event EventHandler? Connected;
@@ -21,6 +25,12 @@ namespace ClipboardSyncClient.Network
         public event EventHandler<string>? Error;
 
         public bool IsConnected => isConnected && socket?.State == WebSocketState.Open;
+        
+        public int BufferSize 
+        { 
+            get => bufferSize; 
+            set => bufferSize = Math.Max(1024, Math.Min(value, 1048576)); // 1KB to 1MB
+        }
 
         public async Task<bool> ConnectAsync(string url, CancellationToken cancellationToken = default)
         {
@@ -93,7 +103,8 @@ namespace ClipboardSyncClient.Network
 
         private async Task ListenForMessages(CancellationToken cancellationToken)
         {
-            var buffer = new byte[8192];
+            var buffer = new byte[BufferSize];
+            messageBuffer.Clear();
             
             while (!cancellationToken.IsCancellationRequested && IsConnected)
             {
@@ -109,20 +120,46 @@ namespace ClipboardSyncClient.Network
                     }
                     else if (result.MessageType == WebSocketMessageType.Text)
                     {
-                        string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        // Add received data to message buffer
+                        messageBuffer.AddRange(buffer.Take(result.Count));
                         
-                        // Handle keepalive ping/pong
-                        if (message == "{\"type\":\"ping\"}")
+                        // Check if message is complete
+                        if (result.EndOfMessage)
                         {
-                            await SendMessageAsync("{\"type\":\"pong\"}", cancellationToken);
-                            continue;
-                        }
-                        else if (message == "{\"type\":\"pong\"}")
-                        {
-                            continue;
-                        }
+                            try
+                            {
+                                string message = Encoding.UTF8.GetString(messageBuffer.ToArray());
+                                messageBuffer.Clear();
+                                
+                                // Handle keepalive ping/pong
+                                if (message == "{\"type\":\"ping\"}")
+                                {
+                                    await SendMessageAsync("{\"type\":\"pong\"}", cancellationToken);
+                                    continue;
+                                }
+                                else if (message == "{\"type\":\"pong\"}")
+                                {
+                                    continue;
+                                }
 
-                        MessageReceived?.Invoke(this, message);
+                                MessageReceived?.Invoke(this, message);
+                            }
+                            catch (Exception ex)
+                            {
+                                Error?.Invoke(this, $"Failed to process message: {ex.Message}");
+                                messageBuffer.Clear(); // Clear buffer on error
+                            }
+                        }
+                        else
+                        {
+                            // Message is fragmented, continue receiving
+                            // Check if buffer is getting too large
+                            if (messageBuffer.Count > BufferSize * 10) // 10x buffer size limit
+                            {
+                                Error?.Invoke(this, "Message too large, discarding");
+                                messageBuffer.Clear();
+                            }
+                        }
                     }
                 }
                 catch (OperationCanceledException)

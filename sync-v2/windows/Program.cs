@@ -25,7 +25,6 @@ namespace ClipboardSyncClient
                 return;
             }
 
-
             var configManager = new ConfigManager();
 
             // Check for silent/background mode arguments (bypass setup)
@@ -34,18 +33,36 @@ namespace ClipboardSyncClient
             if (silentMode)
             {
                 // Silent mode - run directly without setup window
-                var config = configManager.LoadConfig();
-                if (!string.IsNullOrWhiteSpace(config.Token) && 
-                    !string.IsNullOrWhiteSpace(config.WebSocketUrl) && 
-                    !string.IsNullOrWhiteSpace(config.HttpUrl))
+                var silentConfig = configManager.LoadConfig();
+                if (!string.IsNullOrWhiteSpace(silentConfig.Token) && 
+                    !string.IsNullOrWhiteSpace(silentConfig.WebSocketUrl) && 
+                    !string.IsNullOrWhiteSpace(silentConfig.HttpUrl))
                 {
                     // Force background mode for silent operation
-                    config.RunInBackground = true;
-                    configManager.SaveConfig(config);
+                    silentConfig.RunInBackground = true;
+                    configManager.SaveConfig(silentConfig);
                     
                     // Start application in background mode
                     Application.Run(new MainApplication());
                 }
+                return;
+            }
+
+            // Check if this is actually a Windows auto-start (not manual launch)
+            // We can detect this by checking for a special auto-start argument
+            bool isWindowsAutoStart = args.Length > 0 && (args[0] == "--autostart" || args[0] == "/autostart");
+            
+            // Check if AutoStart is enabled and we have valid configuration
+            var config = configManager.LoadConfig();
+            if (isWindowsAutoStart && config.AutoStart && 
+                !string.IsNullOrWhiteSpace(config.Token) && 
+                !string.IsNullOrWhiteSpace(config.WebSocketUrl) && 
+                !string.IsNullOrWhiteSpace(config.HttpUrl))
+            {
+                // AutoStart mode - run directly with saved configuration without setup window
+                // Don't force background mode - use the user's saved preference
+                // But pass startup mode flag for failure notifications
+                Application.Run(new MainApplication(startupMode: true));
                 return;
             }
 

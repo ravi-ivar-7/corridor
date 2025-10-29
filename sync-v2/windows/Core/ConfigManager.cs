@@ -67,7 +67,7 @@ namespace ClipboardSyncClient.Core
                 {
                     if (enabled)
                     {
-                        key.SetValue("ClipboardSync", Application.ExecutablePath);
+                        key.SetValue("ClipboardSync", $"\"{Application.ExecutablePath}\" --autostart");
                     }
                     else
                     {
@@ -116,6 +116,9 @@ namespace ClipboardSyncClient.Core
         public int KeepaliveInterval { get; set; } = 30000;
         public int ClipboardCheckInterval { get; set; } = 1500;
         public int HttpPollingInterval { get; set; } = 5000;
+        public int WebSocketBufferSize { get; set; } = 65536; // 64KB buffer
+        public int MaxContentLength { get; set; } = 1048576; // 1MB max content
+        public bool TruncateLargeContent { get; set; } = true;
         public string OpenHotkey { get; set; } = "Ctrl+Alt+O";
         public string CloseHotkey { get; set; } = "Ctrl+Alt+X";
     }

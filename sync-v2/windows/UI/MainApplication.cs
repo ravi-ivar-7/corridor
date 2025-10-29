@@ -18,11 +18,22 @@ namespace ClipboardSyncClient.UI
         private HotkeyManager hotkeyManager = null!;
         private AppConfig config = null!;
         private bool isConnected = false;
+        private bool isStartupMode = false;
 
-        public MainApplication()
+        private void LogMessage(string message)
+        {
+            // Only log to console if not running in background mode
+            if (!config.RunInBackground)
+            {
+                Console.WriteLine(message);
+            }
+        }
+
+        public MainApplication(bool startupMode = false)
         {
             try
             {
+                isStartupMode = startupMode;
                 configManager = new ConfigManager();
                 config = configManager.LoadConfig();
                 
@@ -33,7 +44,8 @@ namespace ClipboardSyncClient.UI
                 hotkeyManager = new HotkeyManager();
                 InitializeHotkeys();
                 
-                // Only initialize tray icon if not running in background
+                // Initialize tray icon if not running in background
+                // For startup mode, we'll initialize it only when there's an error
                 if (!config.RunInBackground)
                 {
                     InitializeTrayIcon();
@@ -44,9 +56,9 @@ namespace ClipboardSyncClient.UI
             catch (Exception ex)
             {
                 // In background mode, don't show GUI dialogs
-                if (config.RunInBackground)
+                if (config.RunInBackground && !isStartupMode)
                 {
-                    // Just exit silently in background mode
+                    // Just exit silently in background mode (not startup mode)
                     Application.Exit();
                 }
                 else
@@ -87,7 +99,7 @@ namespace ClipboardSyncClient.UI
             catch (Exception ex)
             {
                 // Log error but don't crash the app
-                Console.WriteLine($"Failed to register hotkeys: {ex.Message}");
+                LogMessage($"Failed to register hotkeys: {ex.Message}");
             }
         }
 
@@ -193,6 +205,22 @@ namespace ClipboardSyncClient.UI
                                 MessageBox.Show($"Connection failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }, null);
                         }
+                        else if (isStartupMode)
+                        {
+                            // In startup mode, initialize tray icon and show notification for connection failure
+                            SynchronizationContext.Current?.Post(_ => 
+                            {
+                                if (trayIcon == null)
+                                {
+                                    InitializeTrayIcon();
+                                }
+                                if (trayIcon != null)
+                                {
+                                    trayIcon.ShowBalloonTip(5000, "Connection Failed", 
+                                        $"Failed to connect: {ex.Message}", ToolTipIcon.Error);
+                                }
+                            }, null);
+                        }
                     }
                 });
             }
@@ -202,6 +230,19 @@ namespace ClipboardSyncClient.UI
                 if (!config.RunInBackground)
                 {
                     MessageBox.Show($"Failed to initialize connection: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else if (isStartupMode)
+                {
+                    // In startup mode, initialize tray icon and show notification for initialization failure
+                    if (trayIcon == null)
+                    {
+                        InitializeTrayIcon();
+                    }
+                    if (trayIcon != null)
+                    {
+                        trayIcon.ShowBalloonTip(5000, "Initialization Failed", 
+                            $"Failed to initialize connection: {ex.Message}", ToolTipIcon.Error);
+                    }
                 }
             }
         }
@@ -226,9 +267,9 @@ namespace ClipboardSyncClient.UI
             isConnected = state == ConnectionState.Connected;
             
             // Debug output
-            Console.WriteLine($"Connection state changed to: {state}");
+            LogMessage($"Connection state changed to: {state}");
             
-            // Only update UI if not in background mode
+            // Only update UI if not in background mode OR if in startup mode
             if (trayIcon != null)
             {
                 switch (state)
@@ -242,16 +283,52 @@ namespace ClipboardSyncClient.UI
                         trayIcon.Text = $"{config.AppName} - Connecting...\nRight-click for menu";
                         break;
                     case ConnectionState.Disconnected:
-                        trayIcon.Icon = SystemIcons.Error;
-                        trayIcon.Text = $"{config.AppName} - Disconnected\nRight-click for menu";
+                        // In startup mode, only show tray icon when there's an error
+                        if (isStartupMode)
+                        {
+                            if (trayIcon == null)
+                            {
+                                InitializeTrayIcon();
+                            }
+                            if (trayIcon != null)
+                            {
+                                trayIcon.Icon = SystemIcons.Error;
+                                trayIcon.Text = $"{config.AppName} - Disconnected\nRight-click for menu";
+                                trayIcon.ShowBalloonTip(5000, "Connection Lost", 
+                                    "Lost connection", ToolTipIcon.Warning);
+                            }
+                        }
+                        else
+                        {
+                            trayIcon.Icon = SystemIcons.Error;
+                            trayIcon.Text = $"{config.AppName} - Disconnected\nRight-click for menu";
+                        }
                         break;
                     case ConnectionState.HttpFallback:
                         trayIcon.Icon = SystemIcons.Information;
                         trayIcon.Text = $"{config.AppName} - HTTP Fallback\nRight-click for menu";
                         break;
                     case ConnectionState.Error:
-                        trayIcon.Icon = SystemIcons.Error;
-                        trayIcon.Text = $"{config.AppName} - Error\nRight-click for menu";
+                        // In startup mode, only show tray icon when there's an error
+                        if (isStartupMode)
+                        {
+                            if (trayIcon == null)
+                            {
+                                InitializeTrayIcon();
+                            }
+                            if (trayIcon != null)
+                            {
+                                trayIcon.Icon = SystemIcons.Error;
+                                trayIcon.Text = $"{config.AppName} - Error\nRight-click for menu";
+                                trayIcon.ShowBalloonTip(5000, "Connection Error", 
+                                    "Error occurred with clipboard sync service", ToolTipIcon.Error);
+                            }
+                        }
+                        else
+                        {
+                            trayIcon.Icon = SystemIcons.Error;
+                            trayIcon.Text = $"{config.AppName} - Error\nRight-click for menu";
+                        }
                         break;
                 }
 
@@ -261,7 +338,7 @@ namespace ClipboardSyncClient.UI
             // Always update menu items to reflect current status
             UpdateMenuItems();
             
-            // No notifications in background mode - completely silent
+            // No notifications in background mode - completely silent (except in startup mode)
         }
 
         private void OnClipboardReceived(object? sender, string content)

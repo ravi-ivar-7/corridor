@@ -14,7 +14,7 @@ namespace ClipboardSyncClient.Core
         private readonly ClipboardHttpClient httpClient;
         private readonly MessageQueue messageQueue;
         private readonly ConfigManager configManager;
-        private readonly AppConfig config;
+        private AppConfig config;
 
         private CancellationTokenSource? cancellationTokenSource;
         private bool isRunning = false;
@@ -28,12 +28,22 @@ namespace ClipboardSyncClient.Core
         public event EventHandler<ConnectionState>? ConnectionStateChanged;
         public event EventHandler<string>? ClipboardReceived;
 
+        private void LogMessage(string message)
+        {
+            // Only log to console if not running in background mode
+            if (!config.RunInBackground)
+            {
+                Console.WriteLine(message);
+            }
+        }
+
         public ConnectionManager(ConfigManager configManager)
         {
             this.configManager = configManager;
             config = configManager.LoadConfig();
             
             webSocketClient = new WebSocketClient();
+            webSocketClient.BufferSize = config.WebSocketBufferSize;
             httpClient = new ClipboardHttpClient(config.HttpUrl);
             messageQueue = new MessageQueue();
 
@@ -122,13 +132,14 @@ namespace ClipboardSyncClient.Core
                         await Task.Delay(1000, cancellationToken);
                     }
                 }
-                    catch (Exception)
-                    {
-                        ConnectionStateChanged?.Invoke(this, ConnectionState.Error);
-                        useWebSocket = false;
-                        await Task.Delay(reconnectDelay, cancellationToken);
-                        reconnectDelay = Math.Min(reconnectDelay + reconnectDelayIncrement, maxReconnectDelay);
-                    }
+                catch (Exception ex)
+                {
+                    LogMessage($"Connection error: {ex.Message}");
+                    ConnectionStateChanged?.Invoke(this, ConnectionState.Error);
+                    useWebSocket = false;
+                    await Task.Delay(reconnectDelay, cancellationToken);
+                    reconnectDelay = Math.Min(reconnectDelay + reconnectDelayIncrement, maxReconnectDelay);
+                }
             }
         }
 
@@ -153,23 +164,31 @@ namespace ClipboardSyncClient.Core
 
                     if (!string.IsNullOrWhiteSpace(currentClipboard) && currentClipboard != lastClipboard && !isUpdatingClipboardFromCloud)
                     {
+                        // Validate and potentially truncate content
+                        string processedContent = ValidateAndProcessContent(currentClipboard);
+                        
                         lastClipboard = currentClipboard;
-                        lastSentContent = currentClipboard; // Track what we're sending
+                        lastSentContent = processedContent; // Track what we're sending
                         
                         if (useWebSocket && webSocketClient.IsConnected)
                         {
-                            await webSocketClient.SendClipboardUpdateAsync(currentClipboard, cancellationToken);
+                            await webSocketClient.SendClipboardUpdateAsync(processedContent, cancellationToken);
                         }
                         else
                         {
-                            messageQueue.Enqueue(currentClipboard);
+                            messageQueue.Enqueue(processedContent);
                         }
                     }
                 }
-                    catch (Exception)
-                    {
-                        // Log error
-                    }
+                catch (InvalidOperationException ex)
+                {
+                    // Content too large - log and skip
+                    LogMessage($"Skipping clipboard update: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    LogMessage($"Error in clipboard monitoring: {ex.Message}");
+                }
 
                 try
                 {
@@ -219,6 +238,29 @@ namespace ClipboardSyncClient.Core
             }
         }
 
+        private string ValidateAndProcessContent(string content)
+        {
+            if (string.IsNullOrEmpty(content))
+                return content;
+            
+            // Check content length
+            if (content.Length > config.MaxContentLength)
+            {
+                if (config.TruncateLargeContent)
+                {
+                    LogMessage($"Warning: Clipboard content too large ({content.Length} chars), truncating to {config.MaxContentLength} chars");
+                    return content.Substring(0, config.MaxContentLength) + "\n\n[Content truncated due to size limit]";
+                }
+                else
+                {
+                    LogMessage($"Error: Clipboard content too large ({content.Length} chars), max allowed: {config.MaxContentLength} chars");
+                    throw new InvalidOperationException($"Content too large: {content.Length} chars (max: {config.MaxContentLength})");
+                }
+            }
+            
+            return content;
+        }
+
         private void OnWebSocketMessageReceived(object? sender, string message)
         {
             try
@@ -230,6 +272,9 @@ namespace ClipboardSyncClient.Core
                     typeElement.GetString() == "clipboard_update")
                 {
                     string content = root.GetProperty("data").GetProperty("content").GetString() ?? "";
+                    
+                    // Validate received content
+                    content = ValidateAndProcessContent(content);
                     
                     // Check if this is a message we just sent (to prevent feedback loop notifications)
                     if (content == lastSentContent)
@@ -254,9 +299,14 @@ namespace ClipboardSyncClient.Core
                     });
                 }
             }
-            catch
+            catch (JsonException ex)
             {
-                // Ignore malformed messages
+                LogMessage($"JSON parsing failed: {ex.Message}");
+                LogMessage($"Message: {message.Substring(0, Math.Min(message.Length, 200))}...");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Error processing WebSocket message: {ex.Message}");
             }
         }
 
@@ -273,6 +323,27 @@ namespace ClipboardSyncClient.Core
         private void OnWebSocketError(object? sender, string error)
         {
             ConnectionStateChanged?.Invoke(this, ConnectionState.Error);
+        }
+
+        public void UpdateConfiguration()
+        {
+            // Reload configuration
+            var newConfig = configManager.LoadConfig();
+            
+            // Update WebSocket buffer size if it changed
+            if (webSocketClient != null && newConfig.WebSocketBufferSize != config.WebSocketBufferSize)
+            {
+                webSocketClient.BufferSize = newConfig.WebSocketBufferSize;
+                LogMessage($"WebSocket buffer size updated to: {newConfig.WebSocketBufferSize} bytes");
+            }
+            
+            // Update local config
+            config = newConfig;
+        }
+
+        public (int BufferSize, int MaxContentLength, bool TruncateLargeContent) GetConfiguration()
+        {
+            return (config.WebSocketBufferSize, config.MaxContentLength, config.TruncateLargeContent);
         }
 
         public void Dispose()
