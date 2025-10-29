@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "cd server/web && npm run dev",
-    "build": "cd server/web && npm run build",
+    "build": "cd server/web && npm install && npm run build",
     "start": "cd server/web && npm run start",
     "build:worker": "cd server/worker && npm run build",
     "deploy:worker": "cd server/worker && npm run deploy",
@@ -14,9 +14,5 @@
   },
   "dependencies": {
     "next": "^16.0.0"
-  },
-  "workspaces": [
-    "server/web",
-    "server/worker"
-  ]
+  }
 }
