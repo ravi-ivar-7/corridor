@@ -97,6 +97,15 @@ namespace ClipboardSyncClient.Core
 
     public class AppConfig
     {
+        public string AppName { get; set; } = "Corridor";
+        public string AboutText { get; set; } = "Real-time clipboard synchronization across devices.\n\n" +
+                                               "Features:\n" +
+                                               "• Real-time sync\n" +
+                                               "• Auto-reconnect\n" +
+                                               "• HTTP fallback\n" +
+                                               "• System tray integration\n" +
+                                               "• Background mode\n" +
+                                               "• Auto-start with Windows";
         public string Token { get; set; } = "";
         public string WebSocketUrl { get; set; } = "wss://clipboard-sync-worker.ravi404606.workers.dev/ws";
         public string HttpUrl { get; set; } = "https://clipboard-sync-worker.ravi404606.workers.dev/api";

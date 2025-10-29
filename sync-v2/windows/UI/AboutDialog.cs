@@ -3,19 +3,35 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using ClipboardSyncClient.Core;
 
 namespace ClipboardSyncClient.UI
 {
     public partial class AboutDialog : Form
     {
+        private readonly string appName;
+        private readonly string aboutText;
+
         public AboutDialog()
         {
+            // Load config to get current values
+            var configManager = new ClipboardSyncClient.Core.ConfigManager();
+            var config = configManager.LoadConfig();
+            this.appName = config.AppName;
+            this.aboutText = config.AboutText;
+            InitializeComponent();
+        }
+
+        public AboutDialog(string appName, string aboutText)
+        {
+            this.appName = appName;
+            this.aboutText = aboutText;
             InitializeComponent();
         }
 
         private void InitializeComponent()
         {
-            this.Text = "About Clipboard Sync";
+                this.Text = $"About {appName}";
             this.Size = new Size(500, 350);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -24,7 +40,7 @@ namespace ClipboardSyncClient.UI
 
             var titleLabel = new Label
             {
-                Text = "Clipboard Sync",
+                    Text = appName,
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 Location = new Point(20, 20),
                 Size = new Size(200, 30),
@@ -42,14 +58,7 @@ namespace ClipboardSyncClient.UI
 
             var descriptionLabel = new Label
             {
-                Text = "Real-time clipboard synchronization across devices using WebSockets.\n\n" +
-                       "Features:\n" +
-                       "• Real-time sync\n" +
-                       "• Auto-reconnect\n" +
-                       "• HTTP fallback\n" +
-                       "• System tray integration\n" +
-                       "• Background mode\n" +
-                       "• Auto-start with Windows",
+                    Text = aboutText,
                 Location = new Point(20, 100),
                 Size = new Size(450, 140),
                 AutoSize = false

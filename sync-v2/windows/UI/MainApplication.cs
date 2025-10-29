@@ -15,6 +15,7 @@ namespace ClipboardSyncClient.UI
         private ConnectionManager? connectionManager;
         private ConfigManager configManager = null!;
         private NotificationManager notificationManager = null!;
+        private AppConfig config = null!;
         private bool isConnected = false;
 
         public MainApplication()
@@ -22,7 +23,7 @@ namespace ClipboardSyncClient.UI
             try
             {
                 configManager = new ConfigManager();
-                var config = configManager.LoadConfig();
+                config = configManager.LoadConfig();
                 
                 // Initialize notifications based on background mode
                 notificationManager = new NotificationManager(!config.RunInBackground);
@@ -57,12 +58,12 @@ namespace ClipboardSyncClient.UI
                 customIcon = SystemIcons.Application;
             }
 
-            trayIcon = new NotifyIcon
-            {
-                Icon = customIcon,
-                Text = "Clipboard Sync - Disconnected\nRight-click for menu",
-                Visible = true
-            };
+                trayIcon = new NotifyIcon
+                {
+                    Icon = customIcon,
+                    Text = $"{config.AppName} - Disconnected\nRight-click for menu",
+                    Visible = true
+                };
 
             CreateTrayMenu();
             trayIcon.ContextMenuStrip = trayMenu;
@@ -175,23 +176,23 @@ namespace ClipboardSyncClient.UI
                 {
                     case ConnectionState.Connected:
                         trayIcon.Icon = SystemIcons.Shield;
-                        trayIcon.Text = "Clipboard Sync - Connected\nRight-click for menu";
+                        trayIcon.Text = $"{config.AppName} - Connected\nRight-click for menu";
                         break;
                     case ConnectionState.Connecting:
                         trayIcon.Icon = SystemIcons.Warning;
-                        trayIcon.Text = "Clipboard Sync - Connecting...\nRight-click for menu";
+                        trayIcon.Text = $"{config.AppName} - Connecting...\nRight-click for menu";
                         break;
                     case ConnectionState.Disconnected:
                         trayIcon.Icon = SystemIcons.Error;
-                        trayIcon.Text = "Clipboard Sync - Disconnected\nRight-click for menu";
+                        trayIcon.Text = $"{config.AppName} - Disconnected\nRight-click for menu";
                         break;
                     case ConnectionState.HttpFallback:
                         trayIcon.Icon = SystemIcons.Information;
-                        trayIcon.Text = "Clipboard Sync - HTTP Fallback\nRight-click for menu";
+                        trayIcon.Text = $"{config.AppName} - HTTP Fallback\nRight-click for menu";
                         break;
                     case ConnectionState.Error:
                         trayIcon.Icon = SystemIcons.Error;
-                        trayIcon.Text = "Clipboard Sync - Error\nRight-click for menu";
+                        trayIcon.Text = $"{config.AppName} - Error\nRight-click for menu";
                         break;
                 }
 
@@ -286,11 +287,11 @@ namespace ClipboardSyncClient.UI
         }
 
 
-        private void About_Click(object? sender, EventArgs e)
-        {
-            var aboutDialog = new AboutDialog();
-            aboutDialog.ShowDialog();
-        }
+            private void About_Click(object? sender, EventArgs e)
+            {
+                var aboutDialog = new AboutDialog();
+                aboutDialog.ShowDialog();
+            }
 
         private async void Stop_Click(object? sender, EventArgs e)
         {
