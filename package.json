@@ -1,11 +1,22 @@
 {
+  "name": "corridor",
+  "version": "1.0.0",
+  "description": "Real-time clipboard synchronization across devices",
   "private": true,
   "scripts": {
-    "dev": "cd server && npm run dev",
-    "build": "cd server && npm run build",
-    "start": "cd server && npm run start"
+    "dev": "cd server/web && npm run dev",
+    "build": "cd server/web && npm run build",
+    "start": "cd server/web && npm run start",
+    "build:worker": "cd server/worker && npm run build",
+    "deploy:worker": "cd server/worker && npm run deploy",
+    "dev:worker": "cd server/worker && npm run dev",
+    "build:windows": "cd windows && dotnet publish --configuration Release --self-contained true --runtime win-x64 --output ./publish --p:PublishSingleFile=true --p:DebugType=None --p:EnableCompressionInSingleFile=true"
   },
   "dependencies": {
     "next": "^16.0.0"
-  }
+  },
+  "workspaces": [
+    "server/web",
+    "server/worker"
+  ]
 }

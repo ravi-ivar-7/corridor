@@ -1,0 +1,19 @@
+{
+  "name": "corridor-worker",
+  "version": "1.0.0",
+  "description": "WebSocket-based clipboard synchronization worker for Corridor",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "wrangler dev --test-scheduled"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^4.45.1"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1"
+  }
+}
