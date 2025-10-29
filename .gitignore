@@ -1,6 +1,7 @@
 # # Environment variables
 .env
 # .env.local
+.wrangler/
 
 # Node modules
 node_modules/

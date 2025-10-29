@@ -2,7 +2,7 @@
 
 A modern, real-time clipboard synchronization solution built with Cloudflare Workers, WebSockets, and a native Windows client.
 
-## 🚀 Features
+## Features
 
 - **Real-time Synchronization**: WebSocket-based instant clipboard sync
 - **Cloudflare Infrastructure**: Serverless, global, and scalable
@@ -12,7 +12,7 @@ A modern, real-time clipboard synchronization solution built with Cloudflare Wor
 - **Token-based Security**: Simple authentication without accounts
 - **Silent Operation**: Background mode with system tray integration
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Windows Client (C#) ←→ WebSocket/HTTP ←→ Cloudflare Worker ←→ Durable Storage
@@ -26,7 +26,7 @@ Web Interface (Next.js) ←→ WebSocket ←→ Cloudflare Worker ←→ Durable
 3. **Windows Client (Corridor)**: Native C# application with system tray
 4. **Durable Storage**: Persistent clipboard history and room management
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 sync/
@@ -83,7 +83,7 @@ sync/
 └── README.md
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Deploy the Cloudflare Worker
 
@@ -109,7 +109,7 @@ vercel --prod
 npm run build:windows
 ```
 
-## 📱 Usage
+## Usage
 
 ### Web Interface
 1. Visit your deployed web app
@@ -142,7 +142,7 @@ npm run dev:worker
 npm run build:windows
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables (Worker)
 - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
