@@ -63,19 +63,53 @@ export function ClipboardInput({ onUpdate, disabled }: ClipboardInputProps) {
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type something to sync..."
-            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm resize-y min-h-[60px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm resize-y min-h-[60px] max-h-[300px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
             disabled={disabled}
-            rows={2}
-            style={{ height: 'auto', overflow: 'hidden' }}
+            rows={3}
+            style={{ height: 'auto', overflow: 'auto' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement
               target.style.height = 'auto'
-              target.style.height = target.scrollHeight + 'px'
+              const newHeight = Math.min(target.scrollHeight, 200) // Max 200px
+              target.style.height = newHeight + 'px'
             }}
           />
         </div>
 
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 sticky bottom-0 bg-white pt-2">
+          <div className="flex gap-1.5">
+            {content && (
+              <>
+                <button
+                  type="button"
+                  onClick={copyToClipboard}
+                  className="px-3 py-1.5 bg-green-50 text-green-700 text-xs font-medium rounded border border-green-200 hover:bg-green-100 transition-colors flex items-center justify-center gap-1"
+                >
+                  {isCopied ? (
+                    <>
+                      <Check className="w-3 h-3" />
+                      <span className="hidden sm:inline">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span className="hidden sm:inline">Copy</span>
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={clearContent}
+                  className="px-3 py-1.5 bg-red-50 text-red-700 text-xs font-medium rounded border border-red-200 hover:bg-red-100 transition-colors flex items-center justify-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span className="hidden sm:inline">Clear</span>
+                </button>
+              </>
+            )}
+          </div>
+          
           <button
             type="submit"
             disabled={!content.trim() || disabled}
@@ -84,37 +118,6 @@ export function ClipboardInput({ onUpdate, disabled }: ClipboardInputProps) {
             <Send className="w-3 h-3" />
             Sync
           </button>
-          
-          {content && (
-            <>
-              <button
-                type="button"
-                onClick={copyToClipboard}
-                className="px-3 py-1.5 bg-green-50 text-green-700 text-xs font-medium rounded border border-green-200 hover:bg-green-100 transition-colors flex items-center justify-center gap-1"
-              >
-                {isCopied ? (
-                  <>
-                    <Check className="w-3 h-3" />
-                    <span className="hidden sm:inline">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" />
-                    <span className="hidden sm:inline">Copy</span>
-                  </>
-                )}
-              </button>
-              
-              <button
-                type="button"
-                onClick={clearContent}
-                className="px-3 py-1.5 bg-red-50 text-red-700 text-xs font-medium rounded border border-red-200 hover:bg-red-100 transition-colors flex items-center justify-center gap-1"
-              >
-                <Trash2 className="w-3 h-3" />
-                <span className="hidden sm:inline">Clear</span>
-              </button>
-            </>
-          )}
         </div>
       </form>
     </div>
