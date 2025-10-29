@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Drawing;
 using System.Threading;
@@ -9,11 +10,11 @@ namespace ClipboardSyncClient.UI
 {
     public partial class MainApplication : ApplicationContext
     {
-        private NotifyIcon trayIcon;
-        private ContextMenuStrip trayMenu;
+        private NotifyIcon? trayIcon;
+        private ContextMenuStrip? trayMenu;
         private ConnectionManager? connectionManager;
-        private ConfigManager configManager;
-        private NotificationManager notificationManager;
+        private ConfigManager configManager = null!;
+        private NotificationManager notificationManager = null!;
         private bool isConnected = false;
 
         public MainApplication()
@@ -137,12 +138,24 @@ namespace ClipboardSyncClient.UI
         private void OnConnectionStateChanged(object? sender, ConnectionState state)
         {
             // Use SynchronizationContext for thread-safe UI updates
-            SynchronizationContext.Current?.Post(_ => UpdateConnectionState(state), null);
+            var syncContext = SynchronizationContext.Current;
+            if (syncContext != null)
+            {
+                syncContext.Post(_ => UpdateConnectionState(state), null);
+            }
+            else
+            {
+                // Fallback to direct call if no sync context
+                UpdateConnectionState(state);
+            }
         }
 
         private void UpdateConnectionState(ConnectionState state)
         {
             isConnected = state == ConnectionState.Connected;
+            
+            // Debug output
+            Console.WriteLine($"Connection state changed to: {state}");
             
             // Only update UI if not in background mode
             if (trayIcon != null)
@@ -201,7 +214,7 @@ namespace ClipboardSyncClient.UI
 
                 // Completely silent - no notifications, no UI updates
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Silent error handling - no notifications in background mode
             }
@@ -288,7 +301,7 @@ namespace ClipboardSyncClient.UI
                     // Update menu to reflect stopped state
                     UpdateMenuItems();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Silent error handling
                 }

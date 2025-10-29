@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +60,7 @@ namespace ClipboardSyncClient.Core
                 // Wait for any task to complete (which indicates an error or shutdown)
                 await Task.WhenAny(connectionTask, clipboardTask, keepaliveTask);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isRunning = false;
                 ConnectionStateChanged?.Invoke(this, ConnectionState.Error);
@@ -113,13 +114,13 @@ namespace ClipboardSyncClient.Core
                         await Task.Delay(1000, cancellationToken);
                     }
                 }
-                catch (Exception ex)
-                {
-                    ConnectionStateChanged?.Invoke(this, ConnectionState.Error);
-                    useWebSocket = false;
-                    await Task.Delay(reconnectDelay, cancellationToken);
-                    reconnectDelay = Math.Min(reconnectDelay + reconnectDelayIncrement, maxReconnectDelay);
-                }
+                    catch (Exception)
+                    {
+                        ConnectionStateChanged?.Invoke(this, ConnectionState.Error);
+                        useWebSocket = false;
+                        await Task.Delay(reconnectDelay, cancellationToken);
+                        reconnectDelay = Math.Min(reconnectDelay + reconnectDelayIncrement, maxReconnectDelay);
+                    }
             }
         }
 
@@ -157,10 +158,10 @@ namespace ClipboardSyncClient.Core
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    // Log error
-                }
+                    catch (Exception)
+                    {
+                        // Log error
+                    }
 
                 try
                 {

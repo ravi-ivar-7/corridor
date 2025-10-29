@@ -1,5 +1,7 @@
+#nullable enable
 using System;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using ClipboardSyncClient.Core;
 using ClipboardSyncClient.Network;
@@ -8,14 +10,14 @@ namespace ClipboardSyncClient.UI
 {
     public partial class SettingsDialog : Form
     {
-        private TextBox tokenTextBox;
-        private TextBox wsUrlTextBox;
-        private TextBox httpUrlTextBox;
-        private CheckBox notificationsCheckBox;
-        private CheckBox autoStartCheckBox;
-        private Button saveButton;
-        private Button cancelButton;
-        private Button testConnectionButton;
+        private TextBox tokenTextBox = null!;
+        private TextBox wsUrlTextBox = null!;
+        private TextBox httpUrlTextBox = null!;
+        private CheckBox notificationsCheckBox = null!;
+        private CheckBox autoStartCheckBox = null!;
+        private Button saveButton = null!;
+        private Button cancelButton = null!;
+        private Button testConnectionButton = null!;
 
         private readonly ConfigManager configManager;
 
@@ -159,12 +161,26 @@ namespace ClipboardSyncClient.UI
 
             try
             {
+                // Test HTTP connection first
                 var httpClient = new ClipboardHttpClient(httpUrlTextBox.Text.Trim());
-                string? result = await httpClient.GetClipboardAsync(tokenTextBox.Text.Trim());
+                bool httpSuccess = await httpClient.SendClipboardAsync(tokenTextBox.Text.Trim(), "test_connection");
                 
-                if (result != null)
+                if (httpSuccess)
                 {
-                    MessageBox.Show("Connection test successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Test WebSocket connection
+                    var wsClient = new WebSocketClient();
+                    string wsUrl = $"{wsUrlTextBox.Text.Trim()}?token={tokenTextBox.Text.Trim()}";
+                    bool wsSuccess = await wsClient.ConnectAsync(wsUrl, CancellationToken.None);
+                    wsClient.Dispose();
+                    
+                    if (wsSuccess)
+                    {
+                        MessageBox.Show("Both HTTP and WebSocket connections successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("HTTP connection successful, but WebSocket failed. App will use HTTP fallback.", "Partial Success", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
                 else
                 {

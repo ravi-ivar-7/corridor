@@ -19,7 +19,7 @@ class ClipboardSyncClientConsole
     static readonly int reconnectDelayIncrement = 1000; // Increase by 1 second each time
 
     [STAThread]
-    static async Task Main()
+    static async Task MainConsole()
     {
         Console.OutputEncoding = Encoding.UTF8;
         Console.Write("Enter token: ");
