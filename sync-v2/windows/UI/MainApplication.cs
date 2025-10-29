@@ -44,9 +44,22 @@ namespace ClipboardSyncClient.UI
 
         private void InitializeTrayIcon()
         {
+            // Try to load custom icon, fallback to system icon if failed
+            Icon? customIcon = null;
+            try
+            {
+                // Load the application icon
+                customIcon = new Icon("Resources/Icons/app_icon.ico");
+            }
+            catch
+            {
+                // Fallback to system icon
+                customIcon = SystemIcons.Application;
+            }
+
             trayIcon = new NotifyIcon
             {
-                Icon = SystemIcons.Application,
+                Icon = customIcon,
                 Text = "Clipboard Sync - Disconnected\nRight-click for menu",
                 Visible = true
             };
@@ -77,22 +90,20 @@ namespace ClipboardSyncClient.UI
             trayMenu.Items.Add(stopItem);
             trayMenu.Items.Add(new ToolStripSeparator());
 
-            // Settings and info
-            var settingsItem = new ToolStripMenuItem("Settings", null, Settings_Click);
-            var aboutItem = new ToolStripMenuItem("About", null, About_Click);
-            var exitItem = new ToolStripMenuItem("Exit", null, Exit_Click);
+                // Info and exit
+                var aboutItem = new ToolStripMenuItem("About", null, About_Click);
+                var exitItem = new ToolStripMenuItem("Exit", null, Exit_Click);
 
-            trayMenu.Items.Add(settingsItem);
-            trayMenu.Items.Add(aboutItem);
-            trayMenu.Items.Add(new ToolStripSeparator());
-            trayMenu.Items.Add(exitItem);
+                trayMenu.Items.Add(aboutItem);
+                trayMenu.Items.Add(new ToolStripSeparator());
+                trayMenu.Items.Add(exitItem);
 
             UpdateMenuItems();
         }
 
         private void UpdateMenuItems()
         {
-            if (trayMenu != null && trayMenu.Items.Count >= 6)
+            if (trayMenu != null && trayMenu.Items.Count >= 5)
             {
                 // Update status item (index 0)
                 string statusText = isConnected ? "Status: Connected" : "Status: Disconnected";
@@ -274,16 +285,6 @@ namespace ClipboardSyncClient.UI
             }
         }
 
-        private void Settings_Click(object? sender, EventArgs e)
-        {
-            var settingsDialog = new SettingsDialog(configManager);
-            if (settingsDialog.ShowDialog() == DialogResult.OK)
-            {
-                // Restart connection with new settings
-                connectionManager?.Dispose();
-                InitializeConnection();
-            }
-        }
 
         private void About_Click(object? sender, EventArgs e)
         {
@@ -312,6 +313,7 @@ namespace ClipboardSyncClient.UI
         {
             Application.Exit();
         }
+
 
         protected override void Dispose(bool disposing)
         {
