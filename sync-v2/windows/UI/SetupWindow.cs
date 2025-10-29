@@ -34,41 +34,25 @@ namespace ClipboardSyncClient.UI
         private void InitializeComponent()
         {
             this.Text = "Clipboard Sync - Setup";
-            this.Size = new Size(500, 500);
+            this.Size = new Size(580, 440);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.ShowInTaskbar = true;
-            this.BackColor = Color.White;
-
-            // Header
-            var headerLabel = new Label
-            {
-                Text = "Clipboard Sync Setup",
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Location = new Point(20, 20),
-                Size = new Size(200, 25)
-            };
-            this.Controls.Add(headerLabel);
-
             // Token
             var tokenLabel = new Label
             {
-                Text = "Token *",
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Location = new Point(20, 60),
-                Size = new Size(50, 20)
+                Text = "Token:",
+                Location = new Point(20, 20),
+                Size = new Size(100, 23)
             };
             this.Controls.Add(tokenLabel);
 
             tokenTextBox = new TextBox
             {
-                Location = new Point(20, 80),
+                Location = new Point(130, 20),
                 Size = new Size(300, 23),
-                Font = new Font("Segoe UI", 9),
                 PlaceholderText = "Enter your clipboard sync token"
             };
             this.Controls.Add(tokenTextBox);
@@ -76,104 +60,81 @@ namespace ClipboardSyncClient.UI
             var tokenRequiredLabel = new Label
             {
                 Text = "Required",
-                Font = new Font("Segoe UI", 8),
-                ForeColor = Color.FromArgb(108, 117, 125),
-                Location = new Point(330, 83),
-                Size = new Size(50, 15)
+                Location = new Point(450, 23),
+                Size = new Size(50, 15),
+                ForeColor = Color.Red
             };
             this.Controls.Add(tokenRequiredLabel);
 
             // WebSocket URL
             var wsUrlLabel = new Label
             {
-                Text = "WebSocket URL (Optional)",
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Location = new Point(20, 120),
-                Size = new Size(150, 20)
+                Text = "WebSocket URL:",
+                Location = new Point(20, 60),
+                Size = new Size(100, 23)
             };
             this.Controls.Add(wsUrlLabel);
 
             wsUrlTextBox = new TextBox
             {
-                Location = new Point(20, 140),
-                Size = new Size(300, 23),
-                Font = new Font("Segoe UI", 9)
+                Location = new Point(130, 60),
+                Size = new Size(300, 23)
             };
             this.Controls.Add(wsUrlTextBox);
 
             var wsClearButton = new Button
             {
                 Text = "Clear",
-                Location = new Point(330, 140),
+                Location = new Point(450, 60),
                 Size = new Size(50, 23),
-                Font = new Font("Segoe UI", 8),
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Standard
             };
-            wsClearButton.FlatAppearance.BorderSize = 0;
             wsClearButton.Click += (s, e) => wsUrlTextBox.Clear();
             this.Controls.Add(wsClearButton);
 
             var wsResetButton = new Button
             {
                 Text = "Default",
-                Location = new Point(390, 140),
+                Location = new Point(510, 60),
                 Size = new Size(50, 23),
-                Font = new Font("Segoe UI", 8),
-                BackColor = Color.FromArgb(0, 123, 255),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Standard
             };
-            wsResetButton.FlatAppearance.BorderSize = 0;
             wsResetButton.Click += (s, e) => wsUrlTextBox.Text = "wss://clipboard-sync-worker.ravi404606.workers.dev/ws";
             this.Controls.Add(wsResetButton);
 
             // HTTP URL
             var httpUrlLabel = new Label
             {
-                Text = "HTTP URL (Optional)",
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Location = new Point(20, 180),
-                Size = new Size(150, 20)
+                Text = "HTTP URL:",
+                Location = new Point(20, 100),
+                Size = new Size(100, 23)
             };
             this.Controls.Add(httpUrlLabel);
 
             httpUrlTextBox = new TextBox
             {
-                Location = new Point(20, 200),
-                Size = new Size(300, 23),
-                Font = new Font("Segoe UI", 9)
+                Location = new Point(130, 100),
+                Size = new Size(300, 23)
             };
             this.Controls.Add(httpUrlTextBox);
 
             var httpClearButton = new Button
             {
                 Text = "Clear",
-                Location = new Point(330, 200),
+                Location = new Point(450, 100),
                 Size = new Size(50, 23),
-                Font = new Font("Segoe UI", 8),
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Standard
             };
-            httpClearButton.FlatAppearance.BorderSize = 0;
             httpClearButton.Click += (s, e) => httpUrlTextBox.Clear();
             this.Controls.Add(httpClearButton);
 
             var httpResetButton = new Button
             {
                 Text = "Default",
-                Location = new Point(390, 200),
+                Location = new Point(510, 100),
                 Size = new Size(50, 23),
-                Font = new Font("Segoe UI", 8),
-                BackColor = Color.FromArgb(0, 123, 255),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Standard
             };
-            httpResetButton.FlatAppearance.BorderSize = 0;
             httpResetButton.Click += (s, e) => httpUrlTextBox.Text = "https://clipboard-sync-worker.ravi404606.workers.dev/api";
             this.Controls.Add(httpResetButton);
 
@@ -181,37 +142,19 @@ namespace ClipboardSyncClient.UI
             testConnectionButton = new Button
             {
                 Text = "Test Connection",
-                Location = new Point(20, 240),
-                Size = new Size(100, 25),
-                Font = new Font("Segoe UI", 9),
-                BackColor = Color.FromArgb(0, 123, 255),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                Location = new Point(130, 140),
+                Size = new Size(120, 30),
+                FlatStyle = FlatStyle.Standard
             };
-            testConnectionButton.FlatAppearance.BorderSize = 0;
             testConnectionButton.Click += TestConnection_Click;
             this.Controls.Add(testConnectionButton);
-
-            // Options heading
-            var optionsLabel = new Label
-            {
-                Text = "Options:",
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Location = new Point(20, 275),
-                Size = new Size(60, 20)
-            };
-            this.Controls.Add(optionsLabel);
 
             // Background Mode
             backgroundModeCheckBox = new CheckBox
             {
                 Text = "Run in Background (No Disturbance, No Tray Icon, Silent Mode)",
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Location = new Point(20, 295),
-                Size = new Size(400, 20),
-                Checked = false
+                Location = new Point(20, 190),
+                Size = new Size(400, 23)
             };
             this.Controls.Add(backgroundModeCheckBox);
 
@@ -219,10 +162,8 @@ namespace ClipboardSyncClient.UI
             autoStartCheckBox = new CheckBox
             {
                 Text = "Start with Windows (Launch automatically on system startup)",
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(33, 37, 41),
-                Location = new Point(20, 315),
-                Size = new Size(350, 20)
+                Location = new Point(20, 220),
+                Size = new Size(350, 23)
             };
             this.Controls.Add(autoStartCheckBox);
 
@@ -230,82 +171,59 @@ namespace ClipboardSyncClient.UI
             statusLabel = new Label
             {
                 Text = "",
-                Location = new Point(20, 345),
-                Size = new Size(300, 20),
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(40, 167, 69)
+                Location = new Point(20, 260),
+                Size = new Size(400, 23),
+                ForeColor = Color.Red
             };
             this.Controls.Add(statusLabel);
 
-            // Action Buttons
-            saveButton = new Button
-            {
-                Text = "Save and Start",
-                Location = new Point(300, 365),
-                Size = new Size(100, 30),
-                Font = new Font("Segoe UI", 9),
-                BackColor = Color.FromArgb(40, 167, 69),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            saveButton.FlatAppearance.BorderSize = 0;
-            saveButton.Click += SaveButton_Click;
-            this.Controls.Add(saveButton);
-
+            // Cancel Button (left side)
             cancelButton = new Button
             {
                 Text = "Cancel",
-                Location = new Point(410, 365),
-                Size = new Size(70, 30),
-                Font = new Font("Segoe UI", 9),
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                Location = new Point(360, 300),
+                Size = new Size(80, 30),
+                FlatStyle = FlatStyle.Standard
             };
-            cancelButton.FlatAppearance.BorderSize = 0;
             cancelButton.Click += CancelButton_Click;
             this.Controls.Add(cancelButton);
+
+            // Save Button (right side)
+            saveButton = new Button
+            {
+                Text = "Save and Start",
+                Location = new Point(460, 300),
+                Size = new Size(100, 30),
+                FlatStyle = FlatStyle.Standard
+            };
+            saveButton.Click += SaveButton_Click;
+            this.Controls.Add(saveButton);
 
             // Help buttons
             var howToSetupButton = new Button
             {
                 Text = "How to Setup",
-                Location = new Point(20, 405),
-                Size = new Size(90, 25),
-                Font = new Font("Segoe UI", 8),
-                BackColor = Color.FromArgb(0, 123, 255), // Blue
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                Location = new Point(20, 350),
+                Size = new Size(90, 25)
             };
-            howToSetupButton.FlatAppearance.BorderSize = 0;
             howToSetupButton.Click += HowToSetup_Click;
             this.Controls.Add(howToSetupButton);
 
             var howToGetTokenButton = new Button
             {
                 Text = "How to Get Token",
-                Location = new Point(120, 405),
-                Size = new Size(110, 25),
-                Font = new Font("Segoe UI", 8),
-                BackColor = Color.FromArgb(40, 167, 69), // Green
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                Location = new Point(120, 350),
+                Size = new Size(110, 25)
             };
-            howToGetTokenButton.FlatAppearance.BorderSize = 0;
             howToGetTokenButton.Click += HowToGetToken_Click;
             this.Controls.Add(howToGetTokenButton);
 
             var faqButton = new Button
             {
                 Text = "FAQs",
-                Location = new Point(240, 405),
-                Size = new Size(60, 25),
-                Font = new Font("Segoe UI", 8),
-                BackColor = Color.FromArgb(108, 117, 125), // Gray
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                Location = new Point(240, 350),
+                Size = new Size(60, 25)
             };
-            faqButton.FlatAppearance.BorderSize = 0;
             faqButton.Click += FAQ_Click;
             this.Controls.Add(faqButton);
 
@@ -452,12 +370,8 @@ namespace ClipboardSyncClient.UI
                 Text = "More",
                 Location = new Point(300, 320),
                 Size = new Size(80, 30),
-                DialogResult = DialogResult.OK,
-                BackColor = Color.FromArgb(0, 123, 255),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                DialogResult = DialogResult.OK
             };
-            openButton.FlatAppearance.BorderSize = 0;
             dialog.Controls.Add(openButton);
 
             var okButton = new Button
@@ -465,12 +379,8 @@ namespace ClipboardSyncClient.UI
                 Text = "OK",
                 Location = new Point(390, 320),
                 Size = new Size(60, 30),
-                DialogResult = DialogResult.Cancel,
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                DialogResult = DialogResult.Cancel
             };
-            okButton.FlatAppearance.BorderSize = 0;
             dialog.Controls.Add(okButton);
 
             var result = dialog.ShowDialog();
@@ -524,12 +434,8 @@ namespace ClipboardSyncClient.UI
                 Text = "More",
                 Location = new Point(300, 270),
                 Size = new Size(80, 30),
-                DialogResult = DialogResult.OK,
-                BackColor = Color.FromArgb(0, 123, 255),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                DialogResult = DialogResult.OK
             };
-            openButton.FlatAppearance.BorderSize = 0;
             dialog.Controls.Add(openButton);
 
             var okButton = new Button
@@ -537,12 +443,8 @@ namespace ClipboardSyncClient.UI
                 Text = "OK",
                 Location = new Point(390, 270),
                 Size = new Size(60, 30),
-                DialogResult = DialogResult.Cancel,
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                DialogResult = DialogResult.Cancel
             };
-            okButton.FlatAppearance.BorderSize = 0;
             dialog.Controls.Add(okButton);
 
             var result = dialog.ShowDialog();
@@ -600,12 +502,8 @@ namespace ClipboardSyncClient.UI
                 Text = "More",
                 Location = new Point(300, 320),
                 Size = new Size(80, 30),
-                DialogResult = DialogResult.OK,
-                BackColor = Color.FromArgb(0, 123, 255),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                DialogResult = DialogResult.OK
             };
-            openButton.FlatAppearance.BorderSize = 0;
             dialog.Controls.Add(openButton);
 
             var okButton = new Button
@@ -613,12 +511,8 @@ namespace ClipboardSyncClient.UI
                 Text = "OK",
                 Location = new Point(390, 320),
                 Size = new Size(60, 30),
-                DialogResult = DialogResult.Cancel,
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                DialogResult = DialogResult.Cancel
             };
-            okButton.FlatAppearance.BorderSize = 0;
             dialog.Controls.Add(okButton);
 
             var result = dialog.ShowDialog();

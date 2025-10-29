@@ -31,7 +31,7 @@ namespace ClipboardSyncClient.UI
         private void InitializeComponent()
         {
             this.Text = "Clipboard Sync - Settings";
-            this.Size = new Size(500, 450);
+            this.Size = new Size(500, 400);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;

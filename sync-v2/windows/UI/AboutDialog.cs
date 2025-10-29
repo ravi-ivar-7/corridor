@@ -1,4 +1,6 @@
+#nullable enable
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -14,7 +16,7 @@ namespace ClipboardSyncClient.UI
         private void InitializeComponent()
         {
             this.Text = "About Clipboard Sync";
-            this.Size = new Size(400, 300);
+            this.Size = new Size(500, 350);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -46,23 +48,104 @@ namespace ClipboardSyncClient.UI
                        "• Auto-reconnect\n" +
                        "• HTTP fallback\n" +
                        "• System tray integration\n" +
-                       "• Toast notifications",
+                       "• Background mode\n" +
+                       "• Auto-start with Windows",
                 Location = new Point(20, 100),
-                Size = new Size(350, 120),
+                Size = new Size(450, 140),
                 AutoSize = false
             };
             this.Controls.Add(descriptionLabel);
 
+            // Action buttons
+            var websiteButton = new Button
+            {
+                Text = "Website",
+                Location = new Point(20, 260),
+                Size = new Size(80, 30),
+                FlatStyle = FlatStyle.Standard
+            };
+            websiteButton.Click += WebsiteButton_Click;
+            this.Controls.Add(websiteButton);
+
+            var githubButton = new Button
+            {
+                Text = "GitHub",
+                Location = new Point(110, 260),
+                Size = new Size(80, 30),
+                FlatStyle = FlatStyle.Standard
+            };
+            githubButton.Click += GitHubButton_Click;
+            this.Controls.Add(githubButton);
+
+            var helpButton = new Button
+            {
+                Text = "Help",
+                Location = new Point(200, 260),
+                Size = new Size(80, 30),
+                FlatStyle = FlatStyle.Standard
+            };
+            helpButton.Click += HelpButton_Click;
+            this.Controls.Add(helpButton);
+
             var okButton = new Button
             {
                 Text = "OK",
-                Location = new Point(150, 240),
-                Size = new Size(80, 30)
+                Location = new Point(300, 260),
+                Size = new Size(80, 30),
+                FlatStyle = FlatStyle.Standard
             };
             okButton.Click += (s, e) => this.Close();
             this.Controls.Add(okButton);
 
             this.AcceptButton = okButton;
+        }
+
+        private void WebsiteButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://clipboard-sync-worker.ravi404606.workers.dev",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open website: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void GitHubButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://github.com/ravi404606/clipboard-sync",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open GitHub: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void HelpButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://clipboard-sync-worker.ravi404606.workers.dev/blogs/faqs",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open help: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

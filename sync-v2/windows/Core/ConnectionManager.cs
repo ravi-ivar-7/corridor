@@ -45,12 +45,20 @@ namespace ClipboardSyncClient.Core
 
         public async Task StartAsync()
         {
-            if (isRunning) return;
+            // Stop any existing connection first
+            if (isRunning)
+            {
+                await StopAsync();
+            }
 
             try
             {
                 isRunning = true;
                 cancellationTokenSource = new CancellationTokenSource();
+                
+                // Reset connection state
+                useWebSocket = true;
+                reconnectDelay = 1000;
                 
                 // Start background tasks and await them
                 var connectionTask = Task.Run(() => ConnectionLoop(cancellationTokenSource.Token));
@@ -76,7 +84,7 @@ namespace ClipboardSyncClient.Core
             cancellationTokenSource?.Cancel();
             
             await webSocketClient.DisconnectAsync();
-            httpClient.Dispose();
+            // Don't dispose httpClient here - we need it for reconnection
         }
 
         private async Task ConnectionLoop(CancellationToken cancellationToken)
