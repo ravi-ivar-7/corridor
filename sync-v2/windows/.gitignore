@@ -14,14 +14,14 @@ $RECYCLE.BIN/
 *.lnk
 
 # .NET build artifacts
-bin/
-obj/
 *.user
 *.suo
 
 # Build outputs
 publish/
 publish-*/
+bin/
+obj/
 scripts/Corridor.pfx
 
 # Temporary files
