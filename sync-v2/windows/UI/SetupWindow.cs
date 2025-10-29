@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using ClipboardSyncClient.Core;
@@ -21,6 +22,8 @@ namespace ClipboardSyncClient.UI
         private Button cancelButton = null!;
         private Button testConnectionButton = null!;
         private Button editAboutButton = null!;
+        private TextBox openHotkeyTextBox = null!;
+        private TextBox closeHotkeyTextBox = null!;
         private Label statusLabel = null!;
 
         private readonly ConfigManager configManager;
@@ -36,7 +39,7 @@ namespace ClipboardSyncClient.UI
         private void InitializeComponent()
         {
                 this.Text = $"{configManager.LoadConfig().AppName} - Setup";
-            this.Size = new Size(580, 480);
+            this.Size = new Size(585, 560);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -187,11 +190,73 @@ namespace ClipboardSyncClient.UI
             };
             this.Controls.Add(autoStartCheckBox);
 
+            // Hotkey Configuration
+            var hotkeyLabel = new Label
+            {
+                Text = "Hotkeys (application should be running at least):",
+                Location = new Point(20, 320),
+                Size = new Size(300, 23),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            this.Controls.Add(hotkeyLabel);
+
+            var openHotkeyLabel = new Label
+            {
+                Text = "Open App:",
+                Location = new Point(20, 345),
+                Size = new Size(80, 23)
+            };
+            this.Controls.Add(openHotkeyLabel);
+
+            openHotkeyTextBox = new TextBox
+            {
+                Location = new Point(110, 345),
+                Size = new Size(120, 23),
+                PlaceholderText = "Ctrl+Alt+O"
+            };
+            this.Controls.Add(openHotkeyTextBox);
+
+            var closeHotkeyLabel = new Label
+            {
+                Text = "Close App:",
+                Location = new Point(250, 345),
+                Size = new Size(80, 23)
+            };
+            this.Controls.Add(closeHotkeyLabel);
+
+            closeHotkeyTextBox = new TextBox
+            {
+                Location = new Point(340, 345),
+                Size = new Size(120, 23),
+                PlaceholderText = "Ctrl+Alt+X"
+            };
+            this.Controls.Add(closeHotkeyTextBox);
+
+            var testHotkeyButton = new Button
+            {
+                Text = "Test",
+                Location = new Point(470, 345),
+                Size = new Size(60, 23),
+                FlatStyle = FlatStyle.Standard
+            };
+            testHotkeyButton.Click += TestHotkey_Click;
+            this.Controls.Add(testHotkeyButton);
+
+            var hotkeyInfoLabel = new Label
+            {
+                Text = "Shortcuts work when app is running at least in one mode",
+                Location = new Point(20, 370),
+                Size = new Size(400, 15),
+                Font = new Font("Segoe UI", 8),
+                ForeColor = Color.Gray
+            };
+            this.Controls.Add(hotkeyInfoLabel);
+
             // Status Label
             statusLabel = new Label
             {
                 Text = "",
-                Location = new Point(20, 300),
+                Location = new Point(20, 395),
                 Size = new Size(400, 23),
                 ForeColor = Color.Red
             };
@@ -200,9 +265,9 @@ namespace ClipboardSyncClient.UI
             // Cancel Button (left side)
             cancelButton = new Button
             {
-                Text = "Cancel",
-                Location = new Point(360, 340),
-                Size = new Size(80, 30),
+                Text = "Cancel / Stop",
+                Location = new Point(360, 435),
+                Size = new Size(90, 30),
                 FlatStyle = FlatStyle.Standard
             };
             cancelButton.Click += CancelButton_Click;
@@ -212,7 +277,7 @@ namespace ClipboardSyncClient.UI
             saveButton = new Button
             {
                 Text = "Save and Start",
-                Location = new Point(460, 340),
+                Location = new Point(460, 435),
                 Size = new Size(100, 30),
                 FlatStyle = FlatStyle.Standard
             };
@@ -223,7 +288,7 @@ namespace ClipboardSyncClient.UI
             var howToSetupButton = new Button
             {
                 Text = "How to Setup",
-                Location = new Point(20, 390),
+                Location = new Point(20, 485),
                 Size = new Size(90, 25)
             };
             howToSetupButton.Click += HowToSetup_Click;
@@ -232,7 +297,7 @@ namespace ClipboardSyncClient.UI
             var howToGetTokenButton = new Button
             {
                 Text = "How to Get Token",
-                Location = new Point(120, 390),
+                Location = new Point(120, 485),
                 Size = new Size(110, 25)
             };
             howToGetTokenButton.Click += HowToGetToken_Click;
@@ -241,7 +306,7 @@ namespace ClipboardSyncClient.UI
             var faqButton = new Button
             {
                 Text = "FAQs",
-                Location = new Point(240, 390),
+                Location = new Point(240, 485),
                 Size = new Size(60, 25)
             };
             faqButton.Click += FAQ_Click;
@@ -251,7 +316,7 @@ namespace ClipboardSyncClient.UI
             editAboutButton = new Button
             {
                 Text = "Edit About",
-                Location = new Point(310, 390),
+                Location = new Point(310, 485),
                 Size = new Size(80, 25),
                 FlatStyle = FlatStyle.Standard
             };
@@ -261,16 +326,13 @@ namespace ClipboardSyncClient.UI
             // Set Cancel button only (no Accept button to prevent X button from triggering save)
             this.CancelButton = cancelButton;
             
-            // Handle form closing to ensure X button behaves like Cancel
+            // Handle form closing - X button just closes dialog without any action
             this.FormClosing += (s, e) => {
                 if (e.CloseReason == CloseReason.UserClosing)
                 {
-                    // User clicked X button - exit application like Cancel button
-                    // But don't exit if this is being closed by Save and Start
-                    if (this.DialogResult != DialogResult.OK)
-                    {
-                        Application.Exit();
-                    }
+                    // User clicked X button - just close the dialog
+                    // Don't exit application, just close the setup window
+                    e.Cancel = false; // Allow the dialog to close
                 }
             };
         }
@@ -286,6 +348,8 @@ namespace ClipboardSyncClient.UI
             httpUrlTextBox.Text = string.IsNullOrWhiteSpace(config.HttpUrl) ? "https://clipboard-sync-worker.ravi404606.workers.dev/api" : config.HttpUrl;
             backgroundModeCheckBox.Checked = config.RunInBackground;
             autoStartCheckBox.Checked = config.AutoStart;
+            openHotkeyTextBox.Text = string.IsNullOrWhiteSpace(config.OpenHotkey) ? "Ctrl+Alt+O" : config.OpenHotkey;
+            closeHotkeyTextBox.Text = string.IsNullOrWhiteSpace(config.CloseHotkey) ? "Ctrl+Alt+X" : config.CloseHotkey;
         }
 
         private void SaveButton_Click(object? sender, EventArgs e)
@@ -293,6 +357,28 @@ namespace ClipboardSyncClient.UI
             if (string.IsNullOrWhiteSpace(tokenTextBox.Text))
             {
                 MessageBox.Show("Please enter a token.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Validate hotkeys
+            string openHotkey = string.IsNullOrWhiteSpace(openHotkeyTextBox.Text) ? "Ctrl+Alt+O" : openHotkeyTextBox.Text.Trim();
+            string closeHotkey = string.IsNullOrWhiteSpace(closeHotkeyTextBox.Text) ? "Ctrl+Alt+X" : closeHotkeyTextBox.Text.Trim();
+
+            if (!HotkeyManager.IsValidHotkey(openHotkey))
+            {
+                MessageBox.Show($"Invalid open hotkey format: {openHotkey}\n\nUse format like: Ctrl+Alt+O, Ctrl+Shift+X, etc.", "Invalid Hotkey", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!HotkeyManager.IsValidHotkey(closeHotkey))
+            {
+                MessageBox.Show($"Invalid close hotkey format: {closeHotkey}\n\nUse format like: Ctrl+Alt+X, Ctrl+Shift+Q, etc.", "Invalid Hotkey", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (openHotkey.Equals(closeHotkey, StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Open and close hotkeys cannot be the same.", "Invalid Hotkey", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -308,7 +394,9 @@ namespace ClipboardSyncClient.UI
                     WebSocketUrl = wsUrlTextBox.Text.Trim(),
                     HttpUrl = httpUrlTextBox.Text.Trim(),
                     RunInBackground = backgroundModeCheckBox.Checked,
-                    AutoStart = autoStartCheckBox.Checked
+                    AutoStart = autoStartCheckBox.Checked,
+                    OpenHotkey = openHotkey,
+                    CloseHotkey = closeHotkey
                 };
 
                 configManager.SaveConfig(config);
@@ -386,6 +474,57 @@ namespace ClipboardSyncClient.UI
         private void CancelButton_Click(object? sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void TestHotkey_Click(object? sender, EventArgs e)
+        {
+            string openHotkey = string.IsNullOrWhiteSpace(openHotkeyTextBox.Text) ? "Ctrl+Alt+O" : openHotkeyTextBox.Text.Trim();
+            string closeHotkey = string.IsNullOrWhiteSpace(closeHotkeyTextBox.Text) ? "Ctrl+Alt+X" : closeHotkeyTextBox.Text.Trim();
+
+            var suggestions = HotkeyManager.GetSuggestedHotkeys();
+            var availableHotkeys = suggestions.Where(h => !h.Equals(openHotkey, StringComparison.OrdinalIgnoreCase) && 
+                                                          !h.Equals(closeHotkey, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var dialog = new Form
+            {
+                Text = "Hotkey Suggestions",
+                Size = new Size(400, 300),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var label = new Label
+            {
+                Text = "Available hotkey suggestions (avoid conflicts):",
+                Location = new Point(20, 20),
+                Size = new Size(350, 23),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            dialog.Controls.Add(label);
+
+            var listBox = new ListBox
+            {
+                Location = new Point(20, 50),
+                Size = new Size(350, 150),
+                Font = new Font("Consolas", 9)
+            };
+            listBox.Items.AddRange(availableHotkeys.ToArray());
+            dialog.Controls.Add(listBox);
+
+            var okButton = new Button
+            {
+                Text = "OK",
+                Location = new Point(300, 220),
+                Size = new Size(70, 30),
+                FlatStyle = FlatStyle.Standard,
+                DialogResult = DialogResult.OK
+            };
+            dialog.Controls.Add(okButton);
+
+            dialog.AcceptButton = okButton;
+            dialog.ShowDialog();
         }
 
         private void HowToSetup_Click(object? sender, EventArgs e)

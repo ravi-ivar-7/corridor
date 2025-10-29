@@ -116,5 +116,7 @@ namespace ClipboardSyncClient.Core
         public int KeepaliveInterval { get; set; } = 30000;
         public int ClipboardCheckInterval { get; set; } = 1500;
         public int HttpPollingInterval { get; set; } = 5000;
+        public string OpenHotkey { get; set; } = "Ctrl+Alt+O";
+        public string CloseHotkey { get; set; } = "Ctrl+Alt+X";
     }
 }

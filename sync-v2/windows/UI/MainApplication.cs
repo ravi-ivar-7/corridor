@@ -15,6 +15,7 @@ namespace ClipboardSyncClient.UI
         private ConnectionManager? connectionManager;
         private ConfigManager configManager = null!;
         private NotificationManager notificationManager = null!;
+        private HotkeyManager hotkeyManager = null!;
         private AppConfig config = null!;
         private bool isConnected = false;
 
@@ -28,6 +29,10 @@ namespace ClipboardSyncClient.UI
                 // Initialize notifications based on background mode
                 notificationManager = new NotificationManager(!config.RunInBackground);
                 
+                // Initialize hotkey manager
+                hotkeyManager = new HotkeyManager();
+                InitializeHotkeys();
+                
                 // Only initialize tray icon if not running in background
                 if (!config.RunInBackground)
                 {
@@ -40,6 +45,40 @@ namespace ClipboardSyncClient.UI
             {
                 MessageBox.Show($"Failed to initialize application: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
+            }
+        }
+
+        private void InitializeHotkeys()
+        {
+            try
+            {
+                // Register open hotkey
+                if (!string.IsNullOrWhiteSpace(config.OpenHotkey))
+                {
+                    hotkeyManager.RegisterHotkey(config.OpenHotkey, () => {
+                        // Show setup window or bring to front
+                        SynchronizationContext.Current?.Post(_ => {
+                            var setupWindow = new SetupWindow(configManager);
+                            setupWindow.ShowDialog();
+                        }, null);
+                    });
+                }
+
+                // Register close hotkey
+                if (!string.IsNullOrWhiteSpace(config.CloseHotkey))
+                {
+                    hotkeyManager.RegisterHotkey(config.CloseHotkey, () => {
+                        // Exit application
+                        SynchronizationContext.Current?.Post(_ => {
+                            Application.Exit();
+                        }, null);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't crash the app
+                Console.WriteLine($"Failed to register hotkeys: {ex.Message}");
             }
         }
 
@@ -124,6 +163,9 @@ namespace ClipboardSyncClient.UI
                 connectionManager = new ConnectionManager(configManager);
                 connectionManager.ConnectionStateChanged += OnConnectionStateChanged;
                 connectionManager.ClipboardReceived += OnClipboardReceived;
+
+                // Add message filter for hotkey processing
+                Application.AddMessageFilter(new HotkeyMessageFilter(hotkeyManager));
 
                 // Start connection in background without blocking
                 Task.Run(async () =>
@@ -324,6 +366,7 @@ namespace ClipboardSyncClient.UI
                 trayIcon?.Dispose();
                 trayMenu?.Dispose();
                 notificationManager?.Dispose();
+                hotkeyManager?.Dispose();
             }
             base.Dispose(disposing);
         }
