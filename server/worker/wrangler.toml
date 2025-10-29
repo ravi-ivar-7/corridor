@@ -13,6 +13,7 @@ new_sqlite_classes = ["ClipboardSyncDurableObject"]
 
 [env.production]
 name = "corridor-worker"
+vars = { APP_URL = "https://corridor.rknain.com" }
 
 [env.production.durable_objects]
 bindings = [
@@ -21,3 +22,4 @@ bindings = [
 
 [env.staging]
 name = "corridor-worker-staging"
+vars = { APP_URL = "https://corridor.rknain.com" }

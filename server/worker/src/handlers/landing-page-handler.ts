@@ -253,11 +253,11 @@ export function handleLandingPage(env?: any): Response {
 
             <div class="card">
                 <h2>Quick Links</h2>
-                <div class="links">
-                    <a href="${env?.APP_URL || 'https://corridor-web.vercel.app'}" class="link">🌐 Web App</a>
-                    <a href="${env?.APP_URL || 'https://corridor-web.vercel.app'}/downloads" class="link secondary">📱 Windows Client</a>
-                    <a href="/health" class="link secondary">❤️ Health Check</a>
-                </div>
+                            <div class="links">
+                                <a href="${env?.APP_URL || 'https://corridor-web.vercel.app'}" class="link">🌐 Web App</a>
+                                <a href="${env?.APP_URL || 'https://corridor-web.vercel.app'}/Corridor.exe" class="link secondary" download="Corridor.exe">📱 Windows Client</a>
+                                <a href="/health" class="link secondary">❤️ Health Check</a>
+                            </div>
             </div>
 
             <div class="card">

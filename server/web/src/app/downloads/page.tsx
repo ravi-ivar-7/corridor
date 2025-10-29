@@ -64,8 +64,19 @@ export default function DownloadsPage() {
               </ul>
             </div>
 
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center mb-2">
+                <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                <span className="text-sm font-medium text-green-800">Code Signed</span>
+              </div>
+              <p className="text-xs text-green-700">
+                This executable is digitally signed for secure downloads and reduced security warnings.
+              </p>
+            </div>
+
             <a 
-              href={`${process.env.NEXT_PUBLIC_APP_URL || 'https://corridor-web.vercel.app'}/downloads`}
+              href="/Corridor.exe"
+              download="Corridor.exe"
               className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
             >
               <Download className="h-5 w-5 mr-2" />
