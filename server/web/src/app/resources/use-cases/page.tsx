@@ -73,7 +73,7 @@ export default function UseCasesPage() {
 
         <div className="flex justify-center mt-8 max-w-4xl mx-auto px-4">
           <Link 
-            href="/blogs/how-to-use" 
+            href="/resources/how-to-use" 
             className="group w-full sm:w-auto text-center inline-flex items-center justify-center text-indigo-600 hover:text-indigo-800 font-medium transition-all duration-200 py-2.5 px-5 rounded-lg hover:bg-indigo-50 border border-indigo-100 hover:border-indigo-200"
           >
             <span>Learn How to Get Started</span>

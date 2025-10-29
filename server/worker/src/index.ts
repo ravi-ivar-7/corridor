@@ -33,7 +33,7 @@ export default {
     }
 
     if (url.pathname === '/') {
-      return handleLandingPage();
+      return handleLandingPage(env);
     }
 
     return new Response('Not Found', { status: 404 });

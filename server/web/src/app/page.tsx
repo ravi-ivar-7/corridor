@@ -119,8 +119,8 @@ function HomeContent() {
           />
           <FeatureCard
             icon={<Smartphone className="w-6 h-6" />}
-            title="No Installation"
-            description="Works directly in your web browser"
+            title="Cross-Platform"
+            description="Windows executable or web browser - your choice"
             color="cyan"
           />
         </div>
@@ -130,14 +130,14 @@ function HomeContent() {
           <h2 className="text-2xl font-semibold text-center mb-8 text-gray-800">How It Works</h2>
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
-              <Step number={1} title="Generate a Token" color="indigo" />
+              <Step number={1} title="Download & Install" color="indigo" />
               <div className="h-1 w-8 bg-indigo-200 rounded-full hidden md:block"></div>
-              <Step number={2} title="Share the Token" color="emerald" />
+              <Step number={2} title="Enter a Token" color="emerald" />
               <div className="h-1 w-8 bg-emerald-200 rounded-full hidden md:block"></div>
               <Step number={3} title="Start Syncing" color="amber" />
             </div>
             <p className="text-center text-gray-600 max-w-2xl mx-auto mt-6">
-              Copy on one device, paste on another - it&apos;s that simple!
+              Download the Windows app or use the web interface - copy on one device, paste on another!
             </p>
           </div>
         </div>

@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Copy, Clock, Trash2 } from 'lucide-react'
+import { Copy, Clock, Trash2, Pencil } from 'lucide-react'
 
 interface ClipboardHistoryProps {
   lastMessage: string | null
   websocket: WebSocket | null
   token: string
+  onFillInput?: (content: string) => void
 }
 
 interface ClipboardItem {
@@ -23,7 +24,7 @@ interface WebSocketMessage {
   message?: string
 }
 
-export function ClipboardHistory({ lastMessage, websocket, token }: ClipboardHistoryProps) {
+export function ClipboardHistory({ lastMessage, websocket, token, onFillInput }: ClipboardHistoryProps) {
   const [history, setHistory] = useState<ClipboardItem[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -33,7 +34,7 @@ export function ClipboardHistory({ lastMessage, websocket, token }: ClipboardHis
     const processMessage = () => {
       try {
         const message: WebSocketMessage = JSON.parse(lastMessage)
-        
+
         if (message.type === 'clipboard_history') {
           setHistory(message.history || [])
         } else if (message.type === 'clipboard_update' && message.data) {
@@ -53,6 +54,12 @@ export function ClipboardHistory({ lastMessage, websocket, token }: ClipboardHis
     await navigator.clipboard.writeText(content)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  const fillInput = (content: string) => {
+    if (onFillInput) {
+      onFillInput(content)
+    }
   }
 
   const clearHistory = () => {
@@ -95,7 +102,7 @@ export function ClipboardHistory({ lastMessage, websocket, token }: ClipboardHis
           {history.map((item, index) => {
             const backgroundColors = [
               'bg-blue-50 border-blue-100 hover:bg-blue-100',
-              'bg-green-50 border-green-100 hover:bg-green-100', 
+              'bg-green-50 border-green-100 hover:bg-green-100',
               'bg-purple-50 border-purple-100 hover:bg-purple-100',
               'bg-orange-50 border-orange-100 hover:bg-orange-100',
               'bg-pink-50 border-pink-100 hover:bg-pink-100',
@@ -111,7 +118,7 @@ export function ClipboardHistory({ lastMessage, websocket, token }: ClipboardHis
             ]
             const bgClass = backgroundColors[index % backgroundColors.length]
             const buttonClass = buttonColors[index % buttonColors.length]
-            
+
             return (
               <div
                 key={item.id}
@@ -125,19 +132,35 @@ export function ClipboardHistory({ lastMessage, websocket, token }: ClipboardHis
                         {formatTime(item.timestamp)}
                       </span>
                     </div>
-                    <button
-                      onClick={() => copyToClipboard(item.content, item.id)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors flex items-center gap-1.5 ${buttonClass}`}
-                    >
-                      {copiedId === item.id ? (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          Copied!
-                        </>
-                      ) : (
-                        <Copy className="w-3 h-3" />
+                    <div className="flex gap-2">
+                      {onFillInput && (
+                        <button
+                          onClick={() => fillInput(item.content)}
+                          className="px-3 py-1.5 rounded-md text-xs font-medium border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 hover:border-amber-300 transition-colors flex items-center gap-1.5"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          Use
+                        </button>
                       )}
-                    </button>
+
+                      <button
+                        onClick={() => copyToClipboard(item.content, item.id)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors flex items-center gap-1.5 ${buttonClass}`}
+                      >
+                        {copiedId === item.id ? (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span className="hidden sm:inline">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span className="hidden sm:inline">Copy</span>
+                          </>
+                        )}
+                      </button>
+
+                    </div>
                   </div>
                   <div className="text-sm text-gray-800 break-words max-h-40 overflow-y-auto">
                     {item.content}

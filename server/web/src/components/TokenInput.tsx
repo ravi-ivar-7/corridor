@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Copy, RefreshCw } from 'lucide-react'
 
 interface TokenInputProps {
@@ -11,7 +11,15 @@ export function TokenInput({ onSubmit }: TokenInputProps) {
   const [token, setToken] = useState('')
   const [isCopied, setIsCopied] = useState(false)
 
-  const generateToken = () => {
+  // Load token from localStorage on mount
+  useEffect(() => {
+    const existingToken = localStorage.getItem('clipboardSyncToken');
+    if (existingToken !== null) {
+      setTimeout(() => setToken(existingToken), 0);
+    }
+  }, [])
+
+    const generateToken = () => {
     const newToken = `token_${Math.random().toString(36).substr(2, 9)}`
     setToken(newToken)
     setIsCopied(false)
@@ -34,13 +42,8 @@ export function TokenInput({ onSubmit }: TokenInputProps) {
 
   return (
     <div className="">
-      <h2 className="text-xl font-semibold mb-4 text-gray-900 text-center">Connect to Corridor</h2>
-      <p className="text-sm text-gray-500 mb-4 text-center">Use the same token on all devices to sync your clipboard</p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-2">
-            Token
-          </label>
           <input
             id="token"
             type="text"

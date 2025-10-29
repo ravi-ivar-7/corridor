@@ -13,6 +13,7 @@ export default function TokenPage() {
   const router = useRouter()
   const token = Array.isArray(params.token) ? params.token[0] : params.token || ''
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(true)
+  const [inputValue, setInputValue] = useState('')
   
   const { 
     websocket, 
@@ -45,6 +46,10 @@ export default function TokenPage() {
         }
       })
     }
+  }
+
+  const handleFillInput = (content: string) => {
+    setInputValue(content)
   }
 
   if (!token) {
@@ -85,6 +90,8 @@ export default function TokenPage() {
             <ClipboardInput 
               onUpdate={handleClipboardUpdate}
               disabled={!isConnected}
+              value={inputValue}
+              onValueChange={setInputValue}
             />
           </div>
           
@@ -116,6 +123,7 @@ export default function TokenPage() {
                   lastMessage={lastMessage}
                   websocket={websocket}
                   token={token}
+                  onFillInput={handleFillInput}
                 />
               </div>
             )}

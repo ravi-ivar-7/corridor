@@ -1,4 +1,4 @@
-export function handleLandingPage(): Response {
+export function handleLandingPage(env?: any): Response {
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -98,8 +98,8 @@ export function handleLandingPage(): Response {
         <div class="card">
             <h2>🔗 Quick Links</h2>
             <div class="links">
-                <a href="https://corridor-web.vercel.app" class="link">🌐 Web App</a>
-                <a href="https://github.com/yourusername/corridor" class="link">📱 Windows Client</a>
+                <a href="${env?.APP_URL || 'https://corridor-web.vercel.app'}" class="link">🌐 Web App</a>
+                <a href="${env?.APP_URL || 'https://corridor-web.vercel.app'}/downloads" class="link">📱 Windows Client</a>
                 <a href="/health" class="link">❤️ Health Check</a>
             </div>
         </div>
@@ -115,7 +115,7 @@ export function handleLandingPage(): Response {
 
         <div class="card">
             <h2>📖 How to Use</h2>
-            <p>1. Visit the <a href="https://corridor-web.vercel.app" style="color: #93c5fd;">web app</a> or download the Windows client</p>
+            <p>1. Visit the <a href="${env?.APP_URL || 'https://corridor-web.vercel.app'}" style="color: #93c5fd;">web app</a> or download the Windows client</p>
             <p>2. Create or enter a token to join a clipboard room</p>
             <p>3. Start copying and pasting - it syncs in real-time!</p>
         </div>

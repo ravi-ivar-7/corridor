@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="py-6">
           <nav className="flex flex-row justify-center items-center flex-wrap gap-6 mb-4">
             <Link 
-              href="/blogs/what-is-clipboard-sync" 
+              href="/resources/what-is-clipboard-sync" 
               className="flex items-center text-sm font-medium text-slate-700 hover:text-indigo-600 transition-colors group whitespace-nowrap"
             >
               <div className="p-1.5 mr-2 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
@@ -17,7 +17,7 @@ export default function Footer() {
               What is it?
             </Link>
             <Link 
-              href="/blogs/how-to-use" 
+              href="/resources/how-to-use" 
               className="flex items-center text-sm font-medium text-slate-700 hover:text-indigo-600 transition-colors group whitespace-nowrap"
             >
               <div className="p-1.5 mr-2 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">

@@ -6,46 +6,67 @@ import { Copy, Check, Send, Trash2 } from 'lucide-react'
 interface ClipboardInputProps {
   onUpdate: (content: string) => void
   disabled?: boolean
+  value?: string
+  onValueChange?: (value: string) => void
 }
 
-export function ClipboardInput({ onUpdate, disabled }: ClipboardInputProps) {
+export function ClipboardInput({ onUpdate, disabled, value, onValueChange }: ClipboardInputProps) {
   const [content, setContent] = useState('')
   const [isCopied, setIsCopied] = useState(false)
+  
+  // Use external value if provided, otherwise use internal state
+  const inputValue = value !== undefined ? value : content
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (content.trim() && !disabled) {
-      onUpdate(content.trim())
-      setContent('')
+    if (inputValue.trim() && !disabled) {
+      onUpdate(inputValue.trim())
+      if (onValueChange) {
+        onValueChange('')
+      } else {
+        setContent('')
+      }
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.ctrlKey && e.key === 'Enter') {
       e.preventDefault()
-      if (content.trim() && !disabled) {
-        onUpdate(content.trim())
-        setContent('')
+      if (inputValue.trim() && !disabled) {
+        onUpdate(inputValue.trim())
+        if (onValueChange) {
+          onValueChange('')
+        } else {
+          setContent('')
+        }
       }
     } else if (e.shiftKey && e.key === 'Enter') {
       e.preventDefault()
-      if (content.trim() && !disabled) {
-        onUpdate(content.trim())
-        setContent('')
+      if (inputValue.trim() && !disabled) {
+        onUpdate(inputValue.trim())
+        if (onValueChange) {
+          onValueChange('')
+        } else {
+          setContent('')
+        }
       }
     }
   }
 
   const copyToClipboard = async () => {
-    if (content) {
-      await navigator.clipboard.writeText(content)
+    if (inputValue) {
+      await navigator.clipboard.writeText(inputValue)
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     }
   }
 
   const clearContent = () => {
-    setContent('')
+    if (onValueChange) {
+      onValueChange('')
+    } else {
+      setContent('')
+    }
   }
 
   return (
@@ -59,8 +80,15 @@ export function ClipboardInput({ onUpdate, disabled }: ClipboardInputProps) {
         <div>
           <textarea
             id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            value={inputValue}
+            onChange={(e) => {
+              const newValue = e.target.value
+              if (onValueChange) {
+                onValueChange(newValue)
+              } else {
+                setContent(newValue)
+              }
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Type something to sync..."
             className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm resize-y min-h-[60px] max-h-[300px] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
@@ -78,7 +106,7 @@ export function ClipboardInput({ onUpdate, disabled }: ClipboardInputProps) {
 
         <div className="flex gap-1.5 sticky bottom-0 bg-white pt-2">
           <div className="flex gap-1.5">
-            {content && (
+            {inputValue && (
               <>
                 <button
                   type="button"
@@ -112,7 +140,7 @@ export function ClipboardInput({ onUpdate, disabled }: ClipboardInputProps) {
           
           <button
             type="submit"
-            disabled={!content.trim() || disabled}
+            disabled={!inputValue.trim() || disabled}
             className="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-medium rounded border border-blue-200 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1"
           >
             <Send className="w-3 h-3" />

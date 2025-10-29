@@ -147,7 +147,7 @@ export default function WhatIsClipboardSync() {
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-50 border border-green-100 flex items-center justify-center mt-0.5 mr-3">
                         <Check className="w-3.5 h-3.5 text-green-600" />
                       </div>
-                      <span className="text-stone-700/90 text-xs sm:text-sm leading-relaxed">Works automatically in the background - set it and forget it</span>
+                      <span className="text-stone-700/90 text-sm leading-relaxed">Works automatically in the background - set it and forget it</span>
                     </div>
                   </div>
                   
@@ -156,7 +156,7 @@ export default function WhatIsClipboardSync() {
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-50 border border-green-100 flex items-center justify-center mt-0.5 mr-3">
                         <Check className="w-3.5 h-3.5 text-green-600" />
                       </div>
-                      <span className="text-stone-700/90 text-xs sm:text-sm leading-relaxed">No manual syncing required - it just works</span>
+                      <span className="text-stone-700/90 text-sm leading-relaxed">No manual syncing required - it just works</span>
                     </div>
                   </div>
                   
@@ -165,7 +165,7 @@ export default function WhatIsClipboardSync() {
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-50 border border-green-100 flex items-center justify-center mt-0.5 mr-3">
                         <Check className="w-3.5 h-3.5 text-green-600" />
                       </div>
-                      <span className="text-stone-700/90 text-xs sm:text-sm leading-relaxed">Lightweight and efficient - minimal system resources used</span>
+                      <span className="text-stone-700/90 text-sm leading-relaxed">Lightweight and efficient - minimal system resources used</span>
                     </div>
                   </div>
                   
@@ -174,7 +174,7 @@ export default function WhatIsClipboardSync() {
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-50 border border-green-100 flex items-center justify-center mt-0.5 mr-3">
                         <Check className="w-3.5 h-3.5 text-green-600" />
                       </div>
-                      <span className="text-stone-700/90 text-xs sm:text-sm leading-relaxed">Instant updates across all connected devices</span>
+                      <span className="text-stone-700/90 text-sm leading-relaxed">Instant updates across all connected devices</span>
                     </div>
                   </div>
                 </div>
@@ -186,10 +186,10 @@ export default function WhatIsClipboardSync() {
                   <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-emerald-100/30 rounded-full mix-blend-multiply filter blur-2xl"></div>
                   
                   <div className="relative z-10">
-                    <h3 className="text-lg sm:text-xl font-semibold text-stone-800 mb-2 sm:mb-3">Experience Seamless Clipboard Sync</h3>
+                    <h3 className="text-lg sm:text-xl font-semibold text-stone-800 mb-2 sm:mb-3">Experience Seamless Corridor Sync</h3>
                     <p className="text-stone-600/90 mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base">Start syncing your clipboard across devices in just a few simple steps.</p>
                     <Link 
-                      href="/blogs/how-to-use" 
+                      href="/resources/how-to-use" 
                       className="inline-flex items-center justify-center px-5 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-teal-500 to-emerald-600 text-white text-sm sm:text-base font-medium rounded-lg hover:shadow-lg hover:shadow-teal-100/50 transition-all duration-200"
                     >
                       Get Started Now
@@ -203,7 +203,7 @@ export default function WhatIsClipboardSync() {
         
         <div className="flex justify-center mt-8 max-w-4xl mx-auto px-4">
           <Link 
-            href="/blogs/use-cases" 
+            href="/resources/use-cases" 
             className="group w-full sm:w-auto text-center inline-flex items-center justify-center text-blue-600 hover:text-blue-800 font-medium transition-all duration-200 py-2.5 px-5 rounded-lg hover:bg-blue-50 border border-blue-100 hover:border-blue-200"
           >
             <span>Explore Use Cases</span>

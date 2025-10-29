@@ -20,7 +20,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
   
   return (
     <Link
-      href={`/blogs/${post.slug}`}
+      href={`/resources/${post.slug}`}
       className="group relative bg-white/80 backdrop-blur-sm rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col"
     >
       <div className={`absolute inset-0 ${post.bgGradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}></div>
@@ -109,9 +109,9 @@ export default function BlogPage() {
       <div className="max-w-6xl mx-auto w-full">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12 px-2">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 mb-3 sm:mb-4">Clipboard Sync Blog</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 mb-3 sm:mb-4">Corridor Resources</h1>
           <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
-            Tips, tricks, and guides to help you get the most out of Clipboard Sync
+            Tips, tricks, and guides to help you get the most out of Corridor
           </p>
         </div>
 
@@ -146,7 +146,7 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* Blog Posts */}
+        {/* Resources */}
         <div className="px-2">
           <h2 className="text-lg sm:text-xl font-semibold text-slate-800 mb-4 sm:mb-6 flex items-center">
             <span className="w-1 h-5 sm:h-6 bg-slate-400 rounded-full mr-2"></span>

@@ -3,25 +3,25 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, ChevronDown, Menu, X, Info, List } from 'lucide-react';
+import { Home, BookOpen, ChevronDown, Menu, X, Info, List, Download } from 'lucide-react';
 import Image from 'next/image';
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isBlogsOpen, setIsBlogsOpen] = useState(false);
+  const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => setIsOpen(!isOpen);
-  const toggleBlogs = (e: React.MouseEvent) => {
+  const toggleResources = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsBlogsOpen(!isBlogsOpen);
+    setIsResourcesOpen(!isResourcesOpen);
   };
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsBlogsOpen(false);
+        setIsResourcesOpen(false);
       }
     };
 
@@ -70,48 +70,48 @@ export default function Header() {
 
             <div className="relative" ref={dropdownRef}>
               <button
-                onClick={toggleBlogs}
-                onMouseEnter={() => setIsBlogsOpen(true)}
+                onClick={toggleResources}
+                onMouseEnter={() => setIsResourcesOpen(true)}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  isBlogsOpen || pathname.startsWith('/blogs')
+                  isResourcesOpen || pathname.startsWith('/resources')
                     ? 'text-blue-600 bg-white/30 border-blue-200 shadow-lg shadow-blue-500/20' 
                     : 'text-slate-700/80 hover:text-slate-900 hover:bg-white/30 border-white/20 hover:border-white/40 hover:shadow-lg hover:shadow-blue-500/20'
                 }`}
               >
-                <BookOpen className={`h-4 w-4 ${isBlogsOpen || pathname.startsWith('/blogs') ? 'text-blue-500' : 'text-slate-500'}`} />
-                Blogs
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isBlogsOpen ? 'rotate-180' : ''}`} />
+                <BookOpen className={`h-4 w-4 ${isResourcesOpen || pathname.startsWith('/resources') ? 'text-blue-500' : 'text-slate-500'}`} />
+                Resources
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isResourcesOpen ? 'rotate-180' : ''}`} />
               </button>
               
-              {isBlogsOpen && (
+              {isResourcesOpen && (
                 <div 
                   className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-xl border border-white/40 shadow-2xl shadow-black/20 overflow-hidden z-50"
-                  onMouseEnter={() => setIsBlogsOpen(true)}
-                  onMouseLeave={() => setIsBlogsOpen(false)}
+                  onMouseEnter={() => setIsResourcesOpen(true)}
+                  onMouseLeave={() => setIsResourcesOpen(false)}
                 >
                   <Link
-                    href="/blogs"
+                    href="/resources"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
                   >
                     <BookOpen className="w-4 h-4 text-purple-500" />
-                    All Blogs
+                    All Resources
                   </Link>
                   <Link
-                    href="/blogs/what-is-clipboard-sync"
+                    href="/resources/what-is-clipboard-sync"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
                   >
                     <span className="w-4 h-4 text-blue-500">❓</span>
                     What is it?
                   </Link>
                   <Link
-                    href="/blogs/how-to-use"
+                    href="/resources/how-to-use"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
                   >
                     <span className="w-4 h-4 text-emerald-500">🛠️</span>
                     How to Use
                   </Link>
                   <Link
-                    href="/blogs/use-cases"
+                    href="/resources/use-cases"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
                   >
                     <span className="w-4 h-4 text-purple-500">💡</span>
@@ -132,6 +132,20 @@ export default function Header() {
               <span className="flex items-center gap-2">
                 <Info className="h-4 w-4 text-slate-500" />
                 About
+              </span>
+            </Link>
+
+            <Link 
+              href="/downloads" 
+              className={`flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-slate-50/80 rounded-lg transition-colors ${
+                pathname === '/downloads'
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Download className="h-4 w-4 text-slate-500" />
+                Downloads
               </span>
             </Link>
             </nav>
@@ -175,62 +189,62 @@ export default function Header() {
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  setIsBlogsOpen(!isBlogsOpen);
+                  setIsResourcesOpen(!isResourcesOpen);
                 }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg ${
-                  pathname.startsWith('/blogs')
+                  pathname.startsWith('/resources')
                     ? 'bg-blue-50 text-blue-600' 
                     : 'text-slate-700 hover:bg-slate-50/80'
                 }`}
               >
                 <div className="flex items-center">
                   <BookOpen className="h-5 w-5 mr-3 text-purple-500" />
-                  <span>Blogs</span>
+                  <span>Resources</span>
                 </div>
-                <ChevronDown className={`h-5 w-5 transition-transform ${isBlogsOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 transition-transform ${isResourcesOpen ? 'rotate-180' : ''}`} />
               </button>
               
-              <div className={`overflow-hidden transition-all duration-200 ${isBlogsOpen ? 'max-h-40' : 'max-h-0'}`}>
+              <div className={`overflow-hidden transition-all duration-200 ${isResourcesOpen ? 'max-h-40' : 'max-h-0'}`}>
                 <div className="pl-4 space-y-1 py-1">
                   <Link
-                    href="/blogs"
+                    href="/resources"
                     className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
                     onClick={() => {
                       setIsOpen(false);
-                      setIsBlogsOpen(false);
+                      setIsResourcesOpen(false);
                     }}
                   >
                     <List className="h-4 w-4 mr-3 text-slate-400" />
-                    All Posts
+                    All Resources
                   </Link>
                   <Link
-                    href="/blogs/what-is-clipboard-sync"
+                    href="/resources/what-is-clipboard-sync"
                     className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
                     onClick={() => {
                       setIsOpen(false);
-                      setIsBlogsOpen(false);
+                      setIsResourcesOpen(false);
                     }}
                   >
                     <span className="w-4 h-4 mr-3 text-blue-500">❓</span>
                     What is it?
                   </Link>
                   <Link
-                    href="/blogs/how-to-use"
+                    href="/resources/how-to-use"
                     className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
                     onClick={() => {
                       setIsOpen(false);
-                      setIsBlogsOpen(false);
+                      setIsResourcesOpen(false);
                     }}
                   >
                     <span className="w-4 h-4 mr-3 text-emerald-500">🛠️</span>
                     How to Use
                   </Link>
                   <Link
-                    href="/blogs/use-cases"
+                    href="/resources/use-cases"
                     className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
                     onClick={() => {
                       setIsOpen(false);
-                      setIsBlogsOpen(false);
+                      setIsResourcesOpen(false);
                     }}
                   >
                     <span className="w-4 h-4 mr-3 text-purple-500">💡</span>
@@ -251,6 +265,19 @@ export default function Header() {
             >
               <Info className="h-5 w-5 mr-3 text-emerald-500 flex-shrink-0" />
               <span>About</span>
+            </Link>
+
+            <Link
+              href="/downloads"
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                pathname === '/downloads'
+                  ? 'bg-emerald-50 text-emerald-600' 
+                  : 'text-slate-700 hover:bg-slate-50/80'
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              <Download className="h-5 w-5 mr-3 text-emerald-500 flex-shrink-0" />
+              <span>Downloads</span>
             </Link>
           </div>
         </div>
