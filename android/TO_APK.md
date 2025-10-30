@@ -244,7 +244,23 @@ The only way to remove installation warnings is to publish to **Google Play Stor
 
 ## Distribution
 
-### Method 1: Direct File Sharing
+### Method 1: Deploy to Web Server (Recommended)
+
+After building the APK, automatically deploy it to your web server:
+
+```bash
+cd E:\corridor\android
+deploy-to-web.bat
+```
+
+This script:
+- Copies the APK to `server/web/public/Corridor.apk`
+- Makes it available at `https://your-domain.com/Corridor.apk`
+- Updates the download page automatically
+
+Users can download from your website at `/downloads`
+
+### Method 2: Direct File Sharing
 
 1. Send `app-release.apk` directly via:
    - Email attachment
@@ -256,7 +272,7 @@ The only way to remove installation warnings is to publish to **Google Play Stor
    - Enabling "Unknown sources"
    - Clicking "Install"
 
-### Method 2: Web Download
+### Method 3: Web Download
 
 1. Upload APK to your website or GitHub Releases
 2. Share download link

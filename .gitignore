@@ -37,4 +37,13 @@ server/.env.local
 client/clipboard_sync.exe
 client/build/
 
+# Android specific
+android/app/build/
+android/.gradle/
+android/*.apk
+android/*.aab
+
+# Keep the public APK for downloads
+!server/web/public/Corridor.apk
+
 .claude/

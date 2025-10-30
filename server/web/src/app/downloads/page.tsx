@@ -1,4 +1,4 @@
-import { Download, Monitor, Globe, CheckCircle, ArrowRight } from 'lucide-react';
+import { Download, Monitor, Globe, CheckCircle, ArrowRight, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DownloadsPage() {
@@ -16,7 +16,7 @@ export default function DownloadsPage() {
         </div>
 
         {/* Download Options */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
           {/* Windows Client */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow">
             <div className="flex items-center mb-6">
@@ -81,6 +81,73 @@ export default function DownloadsPage() {
             >
               <Download className="h-5 w-5 mr-2" />
               Download for Windows
+            </a>
+          </div>
+
+          {/* Android App */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mr-4">
+                <Smartphone className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Android App</h2>
+                <p className="text-sm text-gray-500">Mobile application</p>
+              </div>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Download the native Android application for on-the-go clipboard synchronization.
+              Syncs automatically and keeps clipboard history.
+            </p>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Background sync service</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Auto-start on boot</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Clipboard history (100 items)</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Silent mode available</span>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="text-sm text-gray-600 mb-2">
+                <strong>System Requirements:</strong>
+              </div>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Android 8.0 (API 26) or later</li>
+                <li>• Accessibility service permission</li>
+                <li>• Internet connection</li>
+              </ul>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center mb-2">
+                <CheckCircle className="h-4 w-4 text-amber-600 mr-2" />
+                <span className="text-sm font-medium text-amber-800">APK Install</span>
+              </div>
+              <p className="text-xs text-amber-700">
+                Enable &quot;Install from unknown sources&quot; in Settings to install this APK. Signed for security.
+              </p>
+            </div>
+
+            <a
+              href="/Corridor.apk"
+              download="Corridor.apk"
+              className="w-full bg-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center justify-center"
+            >
+              <Download className="h-5 w-5 mr-2" />
+              Download for Android
             </a>
           </div>
 
@@ -155,7 +222,7 @@ export default function DownloadsPage() {
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Download & Install</h3>
               <p className="text-sm text-gray-600">
-                Download the Windows client or open the web app in your browser.
+                Download the Windows or Android client, or open the web app in your browser.
               </p>
             </div>
             
