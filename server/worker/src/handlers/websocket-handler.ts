@@ -112,11 +112,13 @@ export class WebSocketHandler {
 
     await this.state.storage.put(`room:${this.room.token}`, {
       token: this.room.token,
+      
       history: this.room.history,
       lastActivity: this.room.lastActivity
     });
 
-    await this.broadcastToAll({
+    // Broadcast to other clients only (don't echo back to sender)
+    await this.broadcastToOthers(connectionId, {
       type: 'clipboard_update',
       token: this.room.token,
       data: item

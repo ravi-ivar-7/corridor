@@ -1,0 +1,15 @@
+## This file contains default configuration for local development
+## Copy this file to local.properties and customize for your environment
+## Note: local.properties is gitignored and won't be committed
+
+# For local development with a local Cloudflare Worker
+#CORRIDOR_WORKER_URL=http://localhost:8787
+#CORRIDOR_WEBSOCKET_URL=ws://localhost:8787/ws
+
+# For custom/self-hosted backend
+#CORRIDOR_WORKER_URL=https://your-worker.your-domain.com
+#CORRIDOR_WEBSOCKET_URL=wss://your-worker.your-domain.com/ws
+
+# App name (optional override)
+#CORRIDOR_APP_NAME=Corridor Dev
+
