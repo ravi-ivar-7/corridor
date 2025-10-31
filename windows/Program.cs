@@ -18,14 +18,26 @@ namespace ClipboardSyncClient
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Check for existing instance FIRST (before any GUI)
+            var configManager = new ConfigManager();
+
+            // Check if this is actually a Windows auto-start (not manual launch)
+            // We can detect this by checking for a special auto-start argument
+            bool isWindowsAutoStart = args.Length > 0 && (args[0] == "--autostart" || args[0] == "/autostart");
+
+            // Check for existing instance - handle differently for autostart
             if (!IsSingleInstance())
             {
+                if (isWindowsAutoStart)
+                {
+                    // During autostart, if another instance is already running, silently exit
+                    // This prevents duplicate instances from autostart
+                    return;
+                }
+                
+                // For manual launches, show dialog
                 HandleMultipleInstances();
                 return;
             }
-
-            var configManager = new ConfigManager();
 
             // Check for silent/background mode arguments (bypass setup)
             bool silentMode = args.Length > 0 && (args[0] == "--silent" || args[0] == "--background" || args[0] == "/silent" || args[0] == "/background");
@@ -47,23 +59,31 @@ namespace ClipboardSyncClient
                 }
                 return;
             }
-
-            // Check if this is actually a Windows auto-start (not manual launch)
-            // We can detect this by checking for a special auto-start argument
-            bool isWindowsAutoStart = args.Length > 0 && (args[0] == "--autostart" || args[0] == "/autostart");
             
             // Check if AutoStart is enabled and we have valid configuration
             var config = configManager.LoadConfig();
-            if (isWindowsAutoStart && config.AutoStart && 
-                !string.IsNullOrWhiteSpace(config.Token) && 
-                !string.IsNullOrWhiteSpace(config.WebSocketUrl) && 
-                !string.IsNullOrWhiteSpace(config.HttpUrl))
+            if (isWindowsAutoStart)
             {
-                // AutoStart mode - run directly with saved configuration without setup window
-                // Don't force background mode - use the user's saved preference
-                // But pass startup mode flag for failure notifications
-                Application.Run(new MainApplication(startupMode: true));
-                return;
+                // During autostart, verify configuration is valid
+                if (config.AutoStart && 
+                    !string.IsNullOrWhiteSpace(config.Token) && 
+                    !string.IsNullOrWhiteSpace(config.WebSocketUrl) && 
+                    !string.IsNullOrWhiteSpace(config.HttpUrl))
+                {
+                    // AutoStart mode - run directly with saved configuration without setup window
+                    // Don't force background mode - use the user's saved preference
+                    // But pass startup mode flag for failure notifications
+                    Application.Run(new MainApplication(startupMode: true));
+                    return;
+                }
+                else
+                {
+                    // Autostart was triggered but AutoStart is disabled or config is incomplete
+                    // Show setup window to let the user fix configuration
+                    var setupWindowAuto = new SetupWindow(configManager);
+                    Application.Run(setupWindowAuto);
+                    return;
+                }
             }
 
             // ALWAYS show setup window first (normal behavior)
@@ -181,6 +201,7 @@ namespace ClipboardSyncClient
                 Application.Exit();
             }
         }
+
 
     }
 }

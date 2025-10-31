@@ -18,13 +18,13 @@ namespace ClipboardSyncClient.UI
         private TextBox httpUrlTextBox = null!;
         private RadioButton interactiveModeRadio = null!;
         private RadioButton silentModeRadio = null!;
-        private CheckBox autoStartCheckBox = null!;
+        private RadioButton autoStartEnabledRadio = null!;
+        private RadioButton autoStartDisabledRadio = null!;
         private Button saveButton = null!;
         private Button cancelButton = null!;
         private Button testConnectionButton = null!;
         private Button editAboutButton = null!;
         private TextBox openHotkeyTextBox = null!;
-        private TextBox closeHotkeyTextBox = null!;
         private Label statusLabel = null!;
 
         private readonly ConfigManager configManager;
@@ -40,7 +40,7 @@ namespace ClipboardSyncClient.UI
         private void InitializeComponent()
         {
                 this.Text = $"{configManager.LoadConfig().AppName} - Setup";
-            this.Size = new Size(585, 620);
+            this.Size = new Size(700, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -59,7 +59,7 @@ namespace ClipboardSyncClient.UI
             appNameTextBox = new TextBox
             {
                 Location = new Point(130, 20),
-                Size = new Size(300, 23),
+                Size = new Size(520, 23),
                 PlaceholderText = "Enter your app name (appears in tray, task manager, etc.)"
             };
             this.Controls.Add(appNameTextBox);
@@ -76,17 +76,18 @@ namespace ClipboardSyncClient.UI
             tokenTextBox = new TextBox
             {
                 Location = new Point(130, 60),
-                Size = new Size(300, 23),
+                Size = new Size(455, 23),
                 PlaceholderText = "Enter your clipboard sync token"
             };
             this.Controls.Add(tokenTextBox);
 
             var tokenRequiredLabel = new Label
             {
-                Text = "Required",
-                Location = new Point(450, 63),
-                Size = new Size(50, 15),
-                ForeColor = Color.Red
+                Text = "* Required",
+                Location = new Point(595, 63),
+                Size = new Size(80, 20),
+                ForeColor = Color.Red,
+                Font = new Font("Segoe UI", 8, FontStyle.Bold)
             };
             this.Controls.Add(tokenRequiredLabel);
 
@@ -102,15 +103,15 @@ namespace ClipboardSyncClient.UI
             wsUrlTextBox = new TextBox
             {
                 Location = new Point(130, 100),
-                Size = new Size(300, 23)
+                Size = new Size(395, 23)
             };
             this.Controls.Add(wsUrlTextBox);
 
             var wsClearButton = new Button
             {
                 Text = "Clear",
-                Location = new Point(450, 100),
-                Size = new Size(50, 23),
+                Location = new Point(535, 99),
+                Size = new Size(60, 28),
                 FlatStyle = FlatStyle.Standard
             };
             wsClearButton.Click += (s, e) => wsUrlTextBox.Clear();
@@ -119,8 +120,8 @@ namespace ClipboardSyncClient.UI
             var wsResetButton = new Button
             {
                 Text = "Default",
-                Location = new Point(510, 100),
-                Size = new Size(50, 23),
+                Location = new Point(605, 99),
+                Size = new Size(65, 25),
                 FlatStyle = FlatStyle.Standard
             };
             wsResetButton.Click += (s, e) => wsUrlTextBox.Text = "wss://corridor-worker.corridor-sync.workers.dev/ws";
@@ -138,15 +139,15 @@ namespace ClipboardSyncClient.UI
             httpUrlTextBox = new TextBox
             {
                 Location = new Point(130, 140),
-                Size = new Size(300, 23)
+                Size = new Size(395, 23)
             };
             this.Controls.Add(httpUrlTextBox);
 
             var httpClearButton = new Button
             {
                 Text = "Clear",
-                Location = new Point(450, 140),
-                Size = new Size(50, 23),
+                Location = new Point(535, 139),
+                Size = new Size(60, 28),
                 FlatStyle = FlatStyle.Standard
             };
             httpClearButton.Click += (s, e) => httpUrlTextBox.Clear();
@@ -155,8 +156,8 @@ namespace ClipboardSyncClient.UI
             var httpResetButton = new Button
             {
                 Text = "Default",
-                Location = new Point(510, 140),
-                Size = new Size(50, 23),
+                Location = new Point(605, 139),
+                Size = new Size(65, 28),
                 FlatStyle = FlatStyle.Standard
             };
             httpResetButton.Click += (s, e) => httpUrlTextBox.Text = "https://corridor-worker.corridor-sync.workers.dev/api";
@@ -167,119 +168,111 @@ namespace ClipboardSyncClient.UI
             {
                 Text = "Test Connection",
                 Location = new Point(130, 180),
-                Size = new Size(120, 30),
-                FlatStyle = FlatStyle.Standard
+                Size = new Size(130, 32),
+                FlatStyle = FlatStyle.Standard,
+                Font = new Font("Segoe UI", 9)
             };
             testConnectionButton.Click += TestConnection_Click;
             this.Controls.Add(testConnectionButton);
 
             // Mode Section
-            var modeLabel = new Label
+            var modeGroupBox = new GroupBox
             {
                 Text = "Mode:",
                 Location = new Point(20, 230),
-                Size = new Size(100, 23),
+                Size = new Size(640, 80),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
-            this.Controls.Add(modeLabel);
+            this.Controls.Add(modeGroupBox);
 
             // Interactive Mode Radio
             interactiveModeRadio = new RadioButton
             {
                 Text = "Interactive Mode (Shows tray icon, notifications, interactive)",
-                Location = new Point(40, 255),
-                Size = new Size(400, 23),
-                Checked = true
+                Location = new Point(20, 25),
+                Size = new Size(600, 25),
+                Checked = true,
+                Font = new Font("Segoe UI", 9)
             };
-            this.Controls.Add(interactiveModeRadio);
+            modeGroupBox.Controls.Add(interactiveModeRadio);
 
             // Silent Mode Radio
             silentModeRadio = new RadioButton
             {
                 Text = "Silent Mode (Completely silent, no tray icon, no disturbance)",
-                Location = new Point(40, 280),
-                Size = new Size(400, 23)
+                Location = new Point(20, 50),
+                Size = new Size(600, 25),
+                Font = new Font("Segoe UI", 9)
             };
-            this.Controls.Add(silentModeRadio);
+            modeGroupBox.Controls.Add(silentModeRadio);
 
-            // Auto Start
-            autoStartCheckBox = new CheckBox
+            // AutoStart Section
+            var autoStartGroupBox = new GroupBox
             {
-                Text = "AutoStart (Launch on boot, wake from sleep, and user login)",
-                Location = new Point(20, 315),
-                Size = new Size(450, 23),
-                Font = new Font("Segoe UI", 9, FontStyle.Regular)
+                Text = "AutoStart:",
+                Location = new Point(20, 320),
+                Size = new Size(640, 80),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
-            this.Controls.Add(autoStartCheckBox);
+            this.Controls.Add(autoStartGroupBox);
 
-            // AutoStart description
-            var autoStartDesc = new Label
+            // AutoStart Enabled Radio
+            autoStartEnabledRadio = new RadioButton
             {
-                Text = "App will start automatically on system boot, wake from sleep/hibernation, and user logon",
-                Location = new Point(40, 338),
-                Size = new Size(500, 15),
-                Font = new Font("Segoe UI", 8),
-                ForeColor = Color.Gray
+                Text = "Enabled (Launch on boot, wake from sleep, and user login)",
+                Location = new Point(20, 25),
+                Size = new Size(600, 25),
+                Checked = false,
+                Font = new Font("Segoe UI", 9)
             };
-            this.Controls.Add(autoStartDesc);
+            autoStartGroupBox.Controls.Add(autoStartEnabledRadio);
+
+            // AutoStart Disabled Radio
+            autoStartDisabledRadio = new RadioButton
+            {
+                Text = "Disabled (Manual launch only)",
+                Location = new Point(20, 50),
+                Size = new Size(600, 25),
+                Checked = true,
+                Font = new Font("Segoe UI", 9)
+            };
+            autoStartGroupBox.Controls.Add(autoStartDisabledRadio);
 
             // Hotkey Configuration
             var hotkeyLabel = new Label
             {
-                Text = "Hotkeys (application should be running):",
-                Location = new Point(20, 370),
-                Size = new Size(300, 23),
+                Text = "Hotkey to Open App:",
+                Location = new Point(20, 420),
+                Size = new Size(150, 25),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
             this.Controls.Add(hotkeyLabel);
 
-            var openHotkeyLabel = new Label
-            {
-                Text = "Open App:",
-                Location = new Point(20, 395),
-                Size = new Size(80, 23)
-            };
-            this.Controls.Add(openHotkeyLabel);
-
             openHotkeyTextBox = new TextBox
             {
-                Location = new Point(110, 395),
-                Size = new Size(120, 23),
-                PlaceholderText = "Ctrl+Alt+O"
+                Location = new Point(180, 420),
+                Size = new Size(160, 25),
+                PlaceholderText = "Ctrl+Alt+O",
+                Font = new Font("Segoe UI", 9)
             };
             this.Controls.Add(openHotkeyTextBox);
 
-            var closeHotkeyLabel = new Label
-            {
-                Text = "Close App:",
-                Location = new Point(250, 395),
-                Size = new Size(80, 23)
-            };
-            this.Controls.Add(closeHotkeyLabel);
-
-            closeHotkeyTextBox = new TextBox
-            {
-                Location = new Point(340, 395),
-                Size = new Size(120, 23),
-                PlaceholderText = "Ctrl+Alt+X"
-            };
-            this.Controls.Add(closeHotkeyTextBox);
-
             var testHotkeyButton = new Button
             {
-                Text = "Test",
-                Location = new Point(470, 395),
-                Size = new Size(60, 23),
-                FlatStyle = FlatStyle.Standard
+                Text = "Suggestions",
+                Location = new Point(350, 419),
+                Size = new Size(100, 28),
+                FlatStyle = FlatStyle.Standard,
+                Font = new Font("Segoe UI", 9)
             };
             testHotkeyButton.Click += TestHotkey_Click;
             this.Controls.Add(testHotkeyButton);
 
             var hotkeyInfoLabel = new Label
             {
-                Text = "Shortcuts work when app is running in any mode",
-                Location = new Point(20, 420),
-                Size = new Size(400, 15),
+                Text = "Use this hotkey to quickly open the app window when it's running in silent mode",
+                Location = new Point(20, 453),
+                Size = new Size(650, 35),
                 Font = new Font("Segoe UI", 8),
                 ForeColor = Color.Gray
             };
@@ -289,30 +282,33 @@ namespace ClipboardSyncClient.UI
             statusLabel = new Label
             {
                 Text = "",
-                Location = new Point(20, 445),
-                Size = new Size(500, 23),
-                ForeColor = Color.Red
+                Location = new Point(20, 500),
+                Size = new Size(650, 45),
+                ForeColor = Color.Red,
+                Font = new Font("Segoe UI", 9)
             };
             this.Controls.Add(statusLabel);
 
-            // Cancel Button (left side)
+            // Cancel Button (right-aligned)
             cancelButton = new Button
             {
                 Text = "Cancel / Stop",
-                Location = new Point(360, 485),
-                Size = new Size(90, 30),
-                FlatStyle = FlatStyle.Standard
+                Location = new Point(435, 560),
+                Size = new Size(110, 40),
+                FlatStyle = FlatStyle.Standard,
+                Font = new Font("Segoe UI", 9)
             };
             cancelButton.Click += CancelButton_Click;
             this.Controls.Add(cancelButton);
 
-            // Save Button (right side)
+            // Save Button (right-aligned)
             saveButton = new Button
             {
                 Text = "Save and Start",
-                Location = new Point(460, 485),
-                Size = new Size(100, 30),
-                FlatStyle = FlatStyle.Standard
+                Location = new Point(555, 560),
+                Size = new Size(120, 40),
+                FlatStyle = FlatStyle.Standard,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
             saveButton.Click += SaveButton_Click;
             this.Controls.Add(saveButton);
@@ -321,8 +317,9 @@ namespace ClipboardSyncClient.UI
             var howToSetupButton = new Button
             {
                 Text = "How to Setup",
-                Location = new Point(20, 535),
-                Size = new Size(90, 25)
+                Location = new Point(20, 615),
+                Size = new Size(105, 32),
+                Font = new Font("Segoe UI", 9)
             };
             howToSetupButton.Click += HowToSetup_Click;
             this.Controls.Add(howToSetupButton);
@@ -330,8 +327,9 @@ namespace ClipboardSyncClient.UI
             var howToGetTokenButton = new Button
             {
                 Text = "How to Get Token",
-                Location = new Point(120, 535),
-                Size = new Size(110, 25)
+                Location = new Point(135, 615),
+                Size = new Size(125, 32),
+                Font = new Font("Segoe UI", 9)
             };
             howToGetTokenButton.Click += HowToGetToken_Click;
             this.Controls.Add(howToGetTokenButton);
@@ -339,8 +337,9 @@ namespace ClipboardSyncClient.UI
             var faqButton = new Button
             {
                 Text = "FAQs",
-                Location = new Point(240, 535),
-                Size = new Size(60, 25)
+                Location = new Point(270, 615),
+                Size = new Size(70, 32),
+                Font = new Font("Segoe UI", 9)
             };
             faqButton.Click += FAQ_Click;
             this.Controls.Add(faqButton);
@@ -349,9 +348,10 @@ namespace ClipboardSyncClient.UI
             editAboutButton = new Button
             {
                 Text = "Edit About",
-                Location = new Point(310, 535),
-                Size = new Size(80, 25),
-                FlatStyle = FlatStyle.Standard
+                Location = new Point(350, 615),
+                Size = new Size(95, 32),
+                FlatStyle = FlatStyle.Standard,
+                Font = new Font("Segoe UI", 9)
             };
             editAboutButton.Click += EditAbout_Click;
             this.Controls.Add(editAboutButton);
@@ -390,9 +390,16 @@ namespace ClipboardSyncClient.UI
                 interactiveModeRadio.Checked = true;
             }
 
-            autoStartCheckBox.Checked = config.AutoStart;
+            if (config.AutoStart)
+            {
+                autoStartEnabledRadio.Checked = true;
+            }
+            else
+            {
+                autoStartDisabledRadio.Checked = true;
+            }
+
             openHotkeyTextBox.Text = string.IsNullOrWhiteSpace(config.OpenHotkey) ? "Ctrl+Alt+O" : config.OpenHotkey;
-            closeHotkeyTextBox.Text = string.IsNullOrWhiteSpace(config.CloseHotkey) ? "Ctrl+Alt+X" : config.CloseHotkey;
         }
 
         private void SaveButton_Click(object? sender, EventArgs e)
@@ -403,25 +410,12 @@ namespace ClipboardSyncClient.UI
                 return;
             }
 
-            // Validate hotkeys
+            // Validate hotkey
             string openHotkey = string.IsNullOrWhiteSpace(openHotkeyTextBox.Text) ? "Ctrl+Alt+O" : openHotkeyTextBox.Text.Trim();
-            string closeHotkey = string.IsNullOrWhiteSpace(closeHotkeyTextBox.Text) ? "Ctrl+Alt+X" : closeHotkeyTextBox.Text.Trim();
 
             if (!HotkeyManager.IsValidHotkey(openHotkey))
             {
-                MessageBox.Show($"Invalid open hotkey format: {openHotkey}\n\nUse format like: Ctrl+Alt+O, Ctrl+Shift+X, etc.", "Invalid Hotkey", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!HotkeyManager.IsValidHotkey(closeHotkey))
-            {
-                MessageBox.Show($"Invalid close hotkey format: {closeHotkey}\n\nUse format like: Ctrl+Alt+X, Ctrl+Shift+Q, etc.", "Invalid Hotkey", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (openHotkey.Equals(closeHotkey, StringComparison.OrdinalIgnoreCase))
-            {
-                MessageBox.Show("Open and close hotkeys cannot be the same.", "Invalid Hotkey", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Invalid hotkey format: {openHotkey}\n\nPlease use format like: Ctrl+Alt+O, Ctrl+Shift+K, etc.", "Invalid Hotkey", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -436,14 +430,14 @@ namespace ClipboardSyncClient.UI
                 var config = new AppConfig
                 {
                     AppName = string.IsNullOrWhiteSpace(appNameTextBox.Text) ? "Corridor" : appNameTextBox.Text.Trim(),
-                    AboutText = existingConfig.AboutText, // Preserve existing AboutText
+                    AboutText = existingConfig.AboutText,
                     Token = tokenTextBox.Text.Trim(),
                     WebSocketUrl = wsUrlTextBox.Text.Trim(),
                     HttpUrl = httpUrlTextBox.Text.Trim(),
                     Mode = selectedMode,
-                    AutoStart = autoStartCheckBox.Checked,
+                    AutoStart = autoStartEnabledRadio.Checked,
                     OpenHotkey = openHotkey,
-                    CloseHotkey = closeHotkey
+                    CloseHotkey = ""
                 };
 
                 configManager.SaveConfig(config);
@@ -460,7 +454,7 @@ namespace ClipboardSyncClient.UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to save configuration: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorDialog("Configuration Error", $"Failed to save configuration:\n\n{ex.Message}");
             }
         }
 
@@ -526,16 +520,14 @@ namespace ClipboardSyncClient.UI
         private void TestHotkey_Click(object? sender, EventArgs e)
         {
             string openHotkey = string.IsNullOrWhiteSpace(openHotkeyTextBox.Text) ? "Ctrl+Alt+O" : openHotkeyTextBox.Text.Trim();
-            string closeHotkey = string.IsNullOrWhiteSpace(closeHotkeyTextBox.Text) ? "Ctrl+Alt+X" : closeHotkeyTextBox.Text.Trim();
 
             var suggestions = HotkeyManager.GetSuggestedHotkeys();
-            var availableHotkeys = suggestions.Where(h => !h.Equals(openHotkey, StringComparison.OrdinalIgnoreCase) && 
-                                                          !h.Equals(closeHotkey, StringComparison.OrdinalIgnoreCase)).ToList();
+            var availableHotkeys = suggestions.Where(h => !h.Equals(openHotkey, StringComparison.OrdinalIgnoreCase)).ToList();
 
             var dialog = new Form
             {
                 Text = "Hotkey Suggestions",
-                Size = new Size(400, 300),
+                Size = new Size(450, 360),
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
@@ -544,17 +536,17 @@ namespace ClipboardSyncClient.UI
 
             var label = new Label
             {
-                Text = "Available hotkey suggestions (avoid conflicts):",
+                Text = "Available hotkey suggestions to avoid conflicts with system shortcuts:",
                 Location = new Point(20, 20),
-                Size = new Size(350, 23),
+                Size = new Size(400, 40),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
             dialog.Controls.Add(label);
 
             var listBox = new ListBox
             {
-                Location = new Point(20, 50),
-                Size = new Size(350, 150),
+                Location = new Point(20, 70),
+                Size = new Size(400, 200),
                 Font = new Font("Consolas", 9)
             };
             listBox.Items.AddRange(availableHotkeys.ToArray());
@@ -563,8 +555,8 @@ namespace ClipboardSyncClient.UI
             var okButton = new Button
             {
                 Text = "OK",
-                Location = new Point(300, 220),
-                Size = new Size(70, 30),
+                Location = new Point(340, 280),
+                Size = new Size(80, 30),
                 FlatStyle = FlatStyle.Standard,
                 DialogResult = DialogResult.OK
             };
@@ -634,7 +626,7 @@ namespace ClipboardSyncClient.UI
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to open setup guide: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowErrorDialog("Failed to open setup guide", ex.Message);
                 }
             }
         }
@@ -698,7 +690,7 @@ namespace ClipboardSyncClient.UI
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to open token guide: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowErrorDialog("Failed to open token guide", ex.Message);
                 }
             }
         }
@@ -766,7 +758,7 @@ namespace ClipboardSyncClient.UI
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to open FAQs: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowErrorDialog("Failed to open FAQs", ex.Message);
                 }
             }
         }
@@ -929,6 +921,41 @@ namespace ClipboardSyncClient.UI
                 statusLabel.Text = "About text updated successfully!";
                 statusLabel.ForeColor = Color.Green;
             }
+        }
+
+        private void ShowErrorDialog(string title, string message)
+        {
+            var errorDialog = new Form
+            {
+                Text = title,
+                Size = new Size(600, 250),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var errorLabel = new Label
+            {
+                Text = message,
+                Location = new Point(20, 20),
+                Size = new Size(550, 140),
+                Font = new Font("Segoe UI", 9),
+                AutoSize = false
+            };
+            errorDialog.Controls.Add(errorLabel);
+
+            var okButton = new Button
+            {
+                Text = "OK",
+                Location = new Point(490, 170),
+                Size = new Size(80, 30),
+                DialogResult = DialogResult.OK
+            };
+            errorDialog.Controls.Add(okButton);
+            errorDialog.AcceptButton = okButton;
+
+            errorDialog.ShowDialog();
         }
     }
 }

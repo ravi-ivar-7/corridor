@@ -15,7 +15,7 @@ namespace ClipboardSyncClient.Core
 
         public ConfigManager()
         {
-            appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ClipboardSync");
+            appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Corridor");
             configPath = Path.Combine(appDataPath, "config.json");
             
             if (!Directory.Exists(appDataPath))
@@ -108,13 +108,19 @@ namespace ClipboardSyncClient.Core
                 using var key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
                 if (key != null)
                 {
+                    const string registryValueName = "Corridor";
+                    
                     if (enabled)
                     {
-                        key.SetValue("ClipboardSync", $"\"{Application.ExecutablePath}\" --autostart");
+                        key.SetValue(registryValueName, $"\"{Application.ExecutablePath}\" --autostart");
                     }
                     else
                     {
-                        key.DeleteValue("ClipboardSync", false);
+                        try
+                        {
+                            key.DeleteValue(registryValueName, false);
+                        }
+                        catch { }
                     }
                 }
             }
@@ -126,277 +132,119 @@ namespace ClipboardSyncClient.Core
 
         private void SetTaskSchedulerAutoStart(bool enabled)
         {
-            const string taskName = "CorridorClipboardSync";
-            Type? taskServiceType = null;
-            object? taskService = null;
+            const string taskName = "Corridor";
 
             try
             {
-                // Get Task Scheduler COM interface
-                taskServiceType = Type.GetTypeFromProgID("Schedule.Service");
-                if (taskServiceType == null)
-                    throw new Exception("Task Scheduler COM not available on this system");
-
-                taskService = Activator.CreateInstance(taskServiceType);
-                if (taskService == null)
-                    throw new Exception("Failed to create Task Scheduler service instance");
-
-                // Connect to Task Scheduler with proper parameter handling
-                try
-                {
-                    taskServiceType.InvokeMember("Connect",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, taskService, new object?[] { null, null, null, null });
-                }
-                catch
-                {
-                    // Try without parameters
-                    taskServiceType.InvokeMember("Connect",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, taskService, null);
-                }
-
-                // Get root folder
-                object? rootFolder = taskServiceType.InvokeMember("GetFolder",
-                    System.Reflection.BindingFlags.InvokeMethod,
-                    null, taskService, new object[] { "\\" });
-
-                if (rootFolder == null)
-                    throw new Exception("Failed to get Task Scheduler root folder");
-
                 if (!enabled)
                 {
-                    // Delete existing task
-                    try
-                    {
-                        rootFolder.GetType().InvokeMember("DeleteTask",
-                            System.Reflection.BindingFlags.InvokeMethod,
-                            null, rootFolder, new object[] { taskName, 0 });
-                    }
-                    catch
-                    {
-                        // Task might not exist, ignore
-                    }
+                    // Delete the task using PowerShell
+                    var deleteScript = $@"
+                        try {{
+                            Unregister-ScheduledTask -TaskName '{taskName}' -Confirm:$false -ErrorAction Stop
+                            exit 0
+                        }} catch {{
+                            # Task might not exist, exit successfully
+                            exit 0
+                        }}
+                    ";
+
+                    RunPowerShellScript(deleteScript);
                     return;
                 }
 
-                // Delete existing task before creating new one
-                try
-                {
-                    rootFolder.GetType().InvokeMember("DeleteTask",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, rootFolder, new object[] { taskName, 0 });
-                }
-                catch
-                {
-                    // Task might not exist, ignore
-                }
+                // Create the task using PowerShell (more reliable than COM interop)
+                string exePath = Application.ExecutablePath.Replace("'", "''"); // Escape single quotes
+                string currentUser = $"{Environment.UserDomainName}\\{Environment.UserName}".Replace("'", "''");
 
-                // Create new task definition
-                object? taskDefinition = taskServiceType.InvokeMember("NewTask",
-                    System.Reflection.BindingFlags.InvokeMethod,
-                    null, taskService, new object[] { 0 });
+                var createScript = $@"
+                    $taskName = '{taskName}'
+                    $exePath = '{exePath}'
+                    $arguments = '--autostart'
 
-                if (taskDefinition == null)
-                    throw new Exception("Failed to create task definition");
+                    # Delete existing task if it exists
+                    try {{
+                        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+                    }} catch {{
+                        # Ignore errors
+                    }}
 
-                // Set registration info
-                object? regInfo = taskDefinition.GetType().InvokeMember("RegistrationInfo",
-                    System.Reflection.BindingFlags.GetProperty,
-                    null, taskDefinition, null);
+                    # Create task action
+                    $action = New-ScheduledTaskAction -Execute $exePath -Argument $arguments
 
-                if (regInfo != null)
-                {
-                    regInfo.GetType().InvokeMember("Description",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, regInfo, new object[] { "Starts Corridor Clipboard Sync on system startup, logon, and wake from sleep" });
+                    # Create triggers
+                    $bootTrigger = New-ScheduledTaskTrigger -AtStartup
+                    $bootTrigger.Delay = 'PT10S'  # 10 second delay after boot
 
-                    regInfo.GetType().InvokeMember("Author",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, regInfo, new object[] { "Corridor" });
-                }
+                    $logonTrigger = New-ScheduledTaskTrigger -AtLogOn
+                    $logonTrigger.Delay = 'PT5S'  # 5 second delay after logon
 
-                // Get triggers collection
-                object? triggers = taskDefinition.GetType().InvokeMember("Triggers",
-                    System.Reflection.BindingFlags.GetProperty,
-                    null, taskDefinition, null);
+                    $unlockTrigger = New-ScheduledTaskTrigger -AtSessionUnlock
+                    $unlockTrigger.Delay = 'PT3S'  # 3 second delay after unlock
 
-                if (triggers != null)
-                {
-                    // Trigger 1: On system startup (TASK_TRIGGER_BOOT = 8)
-                    object? bootTrigger = triggers.GetType().InvokeMember("Create",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, triggers, new object[] { 8 });
+                    $triggers = @($bootTrigger, $logonTrigger, $unlockTrigger)
 
-                    if (bootTrigger != null)
-                    {
-                        bootTrigger.GetType().InvokeMember("Id",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, bootTrigger, new object[] { "BootTrigger" });
+                    # Create task settings
+                    # Note: Removed RunOnlyIfNetworkAvailable to allow app to start offline and handle reconnection internally
+                    $settings = New-ScheduledTaskSettingsSet `
+                        -AllowStartIfOnBatteries `
+                        -DontStopIfGoingOnBatteries `
+                        -StartWhenAvailable `
+                        -MultipleInstances IgnoreNew `
+                        -ExecutionTimeLimit (New-TimeSpan -Seconds 0)
 
-                        bootTrigger.GetType().InvokeMember("Enabled",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, bootTrigger, new object[] { true });
+                    # Register the task (runs as current user with normal privileges - no admin needed!)
+                    Register-ScheduledTask `
+                        -TaskName $taskName `
+                        -Action $action `
+                        -Trigger $triggers `
+                        -Settings $settings `
+                        -Description 'Starts Corridor on system startup, user logon, and workstation unlock' `
+                        -Force | Out-Null
 
-                        // Delay 10 seconds after boot to allow system to stabilize
-                        bootTrigger.GetType().InvokeMember("Delay",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, bootTrigger, new object[] { "PT10S" });
-                    }
+                    # Verify task was created
+                    $task = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+                    if ($task -eq $null) {{
+                        throw 'Task was not created successfully'
+                    }}
 
-                    // Trigger 2: On user logon (TASK_TRIGGER_LOGON = 9)
-                    object? logonTrigger = triggers.GetType().InvokeMember("Create",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, triggers, new object[] { 9 });
+                    exit 0
+                ";
 
-                    if (logonTrigger != null)
-                    {
-                        logonTrigger.GetType().InvokeMember("Id",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, logonTrigger, new object[] { "LogonTrigger" });
-
-                        logonTrigger.GetType().InvokeMember("Enabled",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, logonTrigger, new object[] { true });
-
-                        // Delay 5 seconds after logon
-                        logonTrigger.GetType().InvokeMember("Delay",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, logonTrigger, new object[] { "PT5S" });
-                    }
-
-                    // Trigger 3: On workstation unlock (TASK_TRIGGER_SESSION_STATE_CHANGE = 11)
-                    // This handles wake from sleep/hibernation
-                    object? sessionTrigger = triggers.GetType().InvokeMember("Create",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, triggers, new object[] { 11 });
-
-                    if (sessionTrigger != null)
-                    {
-                        sessionTrigger.GetType().InvokeMember("Id",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, sessionTrigger, new object[] { "SessionUnlockTrigger" });
-
-                        sessionTrigger.GetType().InvokeMember("Enabled",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, sessionTrigger, new object[] { true });
-
-                        // StateChange = 8 means SESSION_UNLOCK
-                        sessionTrigger.GetType().InvokeMember("StateChange",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, sessionTrigger, new object[] { 8 });
-
-                        // Delay 3 seconds after unlock
-                        sessionTrigger.GetType().InvokeMember("Delay",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, sessionTrigger, new object[] { "PT3S" });
-                    }
-                }
-
-                // Get actions collection
-                object? actions = taskDefinition.GetType().InvokeMember("Actions",
-                    System.Reflection.BindingFlags.GetProperty,
-                    null, taskDefinition, null);
-
-                if (actions != null)
-                {
-                    // Create exec action (TASK_ACTION_EXEC = 0)
-                    object? execAction = actions.GetType().InvokeMember("Create",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, actions, new object[] { 0 });
-
-                    if (execAction != null)
-                    {
-                        execAction.GetType().InvokeMember("Path",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, execAction, new object[] { Application.ExecutablePath });
-
-                        execAction.GetType().InvokeMember("Arguments",
-                            System.Reflection.BindingFlags.SetProperty,
-                            null, execAction, new object[] { "--autostart" });
-                    }
-                }
-
-                // Configure task settings
-                object? settings = taskDefinition.GetType().InvokeMember("Settings",
-                    System.Reflection.BindingFlags.GetProperty,
-                    null, taskDefinition, null);
-
-                if (settings != null)
-                {
-                    // Don't stop if going on batteries
-                    settings.GetType().InvokeMember("StopIfGoingOnBatteries",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, settings, new object[] { false });
-
-                    // Don't disallow start if on batteries
-                    settings.GetType().InvokeMember("DisallowStartIfOnBatteries",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, settings, new object[] { false });
-
-                    // Allow task to run on demand
-                    settings.GetType().InvokeMember("AllowDemandStart",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, settings, new object[] { true });
-
-                    // Start when available if missed
-                    settings.GetType().InvokeMember("StartWhenAvailable",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, settings, new object[] { true });
-
-                    // Don't start a new instance if already running
-                    // TASK_INSTANCES_IGNORE_NEW = 2
-                    settings.GetType().InvokeMember("MultipleInstances",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, settings, new object[] { 2 });
-
-                    // No execution time limit
-                    settings.GetType().InvokeMember("ExecutionTimeLimit",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, settings, new object[] { "PT0S" });
-
-                    // Run only if network is available
-                    settings.GetType().InvokeMember("RunOnlyIfNetworkAvailable",
-                        System.Reflection.BindingFlags.SetProperty,
-                        null, settings, new object[] { true });
-                }
-
-                // Register task
-                // Parameters: path, definition, flags (6 = TASK_CREATE_OR_UPDATE | TASK_LOGON_INTERACTIVE_TOKEN)
-                // Try with minimal parameters first
-                try
-                {
-                    rootFolder.GetType().InvokeMember("RegisterTaskDefinition",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, rootFolder, new object?[] { taskName, taskDefinition, 6, null, null, 3, null });
-                }
-                catch
-                {
-                    // Try with simplified parameters
-                    rootFolder.GetType().InvokeMember("RegisterTaskDefinition",
-                        System.Reflection.BindingFlags.InvokeMethod,
-                        null, rootFolder, new object?[] { taskName, taskDefinition, 6, Type.Missing, Type.Missing, 3 });
-                }
+                RunPowerShellScript(createScript);
             }
             catch (Exception ex)
             {
-                // Get inner exception details if available
-                var innerMsg = ex.InnerException?.Message ?? ex.Message;
-                throw new Exception($"Task Scheduler setup failed: {innerMsg}");
+                throw new Exception($"Task Scheduler setup failed: {ex.Message}");
             }
-            finally
+        }
+
+        private void RunPowerShellScript(string script)
+        {
+            var processStartInfo = new System.Diagnostics.ProcessStartInfo
             {
-                // Clean up COM objects to prevent memory leaks
-                try
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{script.Replace("\"", "\\\"")}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+                // No Verb = "runas" needed - runs as normal user!
+            };
+
+            using (var process = System.Diagnostics.Process.Start(processStartInfo))
+            {
+                if (process == null)
+                    throw new Exception("Failed to start PowerShell process");
+
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit(30000); // 30 second timeout
+
+                if (process.ExitCode != 0)
                 {
-                    if (taskService != null)
-                    {
-                        Marshal.FinalReleaseComObject(taskService);
-                    }
-                }
-                catch
-                {
-                    // Ignore cleanup errors
+                    string errorMsg = !string.IsNullOrWhiteSpace(error) ? error : output;
+                    throw new Exception($"PowerShell script failed (Exit code: {process.ExitCode}): {errorMsg}");
                 }
             }
         }
@@ -409,9 +257,9 @@ namespace ClipboardSyncClient.Core
                 if (IsTaskSchedulerAutoStartEnabled())
                     return true;
 
-                // Fall back to registry check
+                // Fall back to registry check (Corridor registry value only)
                 using var key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", false);
-                return key?.GetValue("ClipboardSync") != null;
+                return key?.GetValue("Corridor") != null;
             }
             catch
             {
@@ -421,55 +269,45 @@ namespace ClipboardSyncClient.Core
 
         private bool IsTaskSchedulerAutoStartEnabled()
         {
-            const string taskName = "CorridorClipboardSync";
-            Type? taskServiceType = null;
-            object? taskService = null;
+            const string taskName = "Corridor";
 
             try
             {
-                taskServiceType = Type.GetTypeFromProgID("Schedule.Service");
-                if (taskServiceType == null)
-                    return false;
+                var checkScript = $@"
+                    try {{
+                        $task = Get-ScheduledTask -TaskName '{taskName}' -ErrorAction Stop
+                        if ($task -ne $null) {{
+                            exit 0  # Task exists
+                        }} else {{
+                            exit 1  # Task doesn't exist
+                        }}
+                    }} catch {{
+                        exit 1  # Task doesn't exist or error
+                    }}
+                ";
 
-                taskService = Activator.CreateInstance(taskServiceType);
-                if (taskService == null)
-                    return false;
+                var processStartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{checkScript.Replace("\"", "\\\"")}\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
 
-                taskServiceType.InvokeMember("Connect",
-                    System.Reflection.BindingFlags.InvokeMethod,
-                    null, taskService, null);
+                using (var process = System.Diagnostics.Process.Start(processStartInfo))
+                {
+                    if (process == null)
+                        return false;
 
-                object? rootFolder = taskServiceType.InvokeMember("GetFolder",
-                    System.Reflection.BindingFlags.InvokeMethod,
-                    null, taskService, new object[] { "\\" });
-
-                if (rootFolder == null)
-                    return false;
-
-                // Try to get the task
-                object? task = rootFolder.GetType().InvokeMember("GetTask",
-                    System.Reflection.BindingFlags.InvokeMethod,
-                    null, rootFolder, new object[] { taskName });
-
-                return task != null;
+                    process.WaitForExit(5000); // 5 second timeout
+                    return process.ExitCode == 0;
+                }
             }
             catch
             {
                 return false;
-            }
-            finally
-            {
-                try
-                {
-                    if (taskService != null)
-                    {
-                        Marshal.FinalReleaseComObject(taskService);
-                    }
-                }
-                catch
-                {
-                    // Ignore cleanup errors
-                }
             }
         }
     }
@@ -505,6 +343,6 @@ namespace ClipboardSyncClient.Core
         public int MaxContentLength { get; set; } = 1048576; // 1MB max content
         public bool TruncateLargeContent { get; set; } = true;
         public string OpenHotkey { get; set; } = "Ctrl+Alt+O";
-        public string CloseHotkey { get; set; } = "Ctrl+Alt+X";
+        public string CloseHotkey { get; set; } = "";
     }
 }

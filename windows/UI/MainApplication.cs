@@ -127,17 +127,6 @@ namespace ClipboardSyncClient.UI
                         }, null);
                     });
                 }
-
-                // Register close hotkey
-                if (!string.IsNullOrWhiteSpace(config.CloseHotkey))
-                {
-                    hotkeyManager.RegisterHotkey(config.CloseHotkey, () => {
-                        // Exit application
-                        SynchronizationContext.Current?.Post(_ => {
-                            Application.Exit();
-                        }, null);
-                    });
-                }
             }
             catch (Exception ex)
             {

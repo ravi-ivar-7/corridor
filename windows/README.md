@@ -88,12 +88,12 @@ dotnet publish --configuration Release --self-contained true --runtime win-x64 -
 
 #### Option 4: Optimized Single-File (Recommended for Distribution)
 ```bash
-dotnet publish --configuration Release --self-contained true --runtime win-x64 --output ./publish --p:PublishSingleFile=true --p:DebugType=None --p:EnableCompressionInSingleFile=true --p:IncludeNativeLibrariesForSelfExtract=true --p:IlcOptimizationPreference=Size
+dotnet publish -c Release --self-contained true -r win-x64 -o ./publish -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:IlcOptimizationPreference=Size
 ```
 
 **Output:** `publish/Corridor.exe` (single file, optimized)
-**Size:** ~50 MB (70% smaller!)
-**Requirements:** None - runs on any Windows machine
+**Size:** ~48 MB (includes admin manifest and all optimizations)
+**Requirements:** None - runs on any Windows machine with administrator privileges
 
 ### Other Build Options
 
@@ -226,12 +226,12 @@ dotnet run --configuration Debug
 ## Deployment
 
 ### For End Users (Recommended)
-Use the single-file self-contained build:
+Use the optimized single-file self-contained build:
 ```bash
-dotnet publish --configuration Release --self-contained true --runtime win-x64 --output ./publish-single --p:PublishSingleFile=true
+dotnet publish -c Release --self-contained true -r win-x64 -o ./publish -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:IlcOptimizationPreference=Size
 ```
 
-Then distribute only the `ClipboardClient.exe` file from the `publish-single` folder.
+Then distribute only the `Corridor.exe` file (48 MB) from the `publish` folder.
 
 ### For System Administrators
 Use the full self-contained build if you need to inspect or modify individual components:
@@ -272,11 +272,11 @@ Assembly signing is disabled as it's not needed for self-contained executables.
 
 | Build Type | Command | Output Location | Size | Requirements |
 |------------|---------|-----------------|------|--------------|
-| Debug | `dotnet build --configuration Debug` | `bin/Debug/net9.0-windows/` | ~5 MB | .NET 9.0 |
-| Release | `dotnet build --configuration Release` | `bin/Release/net9.0-windows/` | ~5 MB | .NET 9.0 |
+| Debug | `dotnet build -c Debug` | `bin/Debug/net9.0-windows/` | ~5 MB | .NET 9.0 |
+| Release | `dotnet build -c Release` | `bin/Release/net9.0-windows/` | ~5 MB | .NET 9.0 |
 | Self-Contained | `dotnet publish --self-contained true` | `publish/` | ~150-200 MB | None |
-| Single File | `dotnet publish --self-contained true --p:PublishSingleFile=true` | `publish-single/` | ~150-200 MB | None |
-| **Optimized** | `dotnet publish --self-contained true --p:PublishSingleFile=true --p:EnableCompressionInSingleFile=true` | `publish-optimized/` | **~50 MB** | None |
+| Single File | `dotnet publish --self-contained true -p:PublishSingleFile=true` | `publish/` | ~150-200 MB | None |
+| **Optimized** | `dotnet publish -c Release --self-contained true -r win-x64 -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:IlcOptimizationPreference=Size` | `publish/` | **~48 MB** | None |
 
 ## Troubleshooting
 
