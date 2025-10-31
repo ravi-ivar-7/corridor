@@ -16,7 +16,8 @@ namespace ClipboardSyncClient.UI
         private TextBox tokenTextBox = null!;
         private TextBox wsUrlTextBox = null!;
         private TextBox httpUrlTextBox = null!;
-        private CheckBox backgroundModeCheckBox = null!;
+        private RadioButton interactiveModeRadio = null!;
+        private RadioButton silentModeRadio = null!;
         private CheckBox autoStartCheckBox = null!;
         private Button saveButton = null!;
         private Button cancelButton = null!;
@@ -39,7 +40,7 @@ namespace ClipboardSyncClient.UI
         private void InitializeComponent()
         {
                 this.Text = $"{configManager.LoadConfig().AppName} - Setup";
-            this.Size = new Size(585, 560);
+            this.Size = new Size(585, 620);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -172,29 +173,61 @@ namespace ClipboardSyncClient.UI
             testConnectionButton.Click += TestConnection_Click;
             this.Controls.Add(testConnectionButton);
 
-            // Background Mode
-            backgroundModeCheckBox = new CheckBox
+            // Mode Section
+            var modeLabel = new Label
             {
-                Text = "Run in Background (No Disturbance, No Tray Icon, Silent Mode)",
+                Text = "Mode:",
                 Location = new Point(20, 230),
+                Size = new Size(100, 23),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            this.Controls.Add(modeLabel);
+
+            // Interactive Mode Radio
+            interactiveModeRadio = new RadioButton
+            {
+                Text = "Interactive Mode (Shows tray icon, notifications, interactive)",
+                Location = new Point(40, 255),
+                Size = new Size(400, 23),
+                Checked = true
+            };
+            this.Controls.Add(interactiveModeRadio);
+
+            // Silent Mode Radio
+            silentModeRadio = new RadioButton
+            {
+                Text = "Silent Mode (Completely silent, no tray icon, no disturbance)",
+                Location = new Point(40, 280),
                 Size = new Size(400, 23)
             };
-            this.Controls.Add(backgroundModeCheckBox);
+            this.Controls.Add(silentModeRadio);
 
             // Auto Start
             autoStartCheckBox = new CheckBox
             {
-                Text = "Start with Windows (Launch automatically on system startup)",
-                Location = new Point(20, 260),
-                Size = new Size(350, 23)
+                Text = "AutoStart (Launch on boot, wake from sleep, and user login)",
+                Location = new Point(20, 315),
+                Size = new Size(450, 23),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular)
             };
             this.Controls.Add(autoStartCheckBox);
+
+            // AutoStart description
+            var autoStartDesc = new Label
+            {
+                Text = "App will start automatically on system boot, wake from sleep/hibernation, and user logon",
+                Location = new Point(40, 338),
+                Size = new Size(500, 15),
+                Font = new Font("Segoe UI", 8),
+                ForeColor = Color.Gray
+            };
+            this.Controls.Add(autoStartDesc);
 
             // Hotkey Configuration
             var hotkeyLabel = new Label
             {
-                Text = "Hotkeys (application should be running at least):",
-                Location = new Point(20, 320),
+                Text = "Hotkeys (application should be running):",
+                Location = new Point(20, 370),
                 Size = new Size(300, 23),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
@@ -203,14 +236,14 @@ namespace ClipboardSyncClient.UI
             var openHotkeyLabel = new Label
             {
                 Text = "Open App:",
-                Location = new Point(20, 345),
+                Location = new Point(20, 395),
                 Size = new Size(80, 23)
             };
             this.Controls.Add(openHotkeyLabel);
 
             openHotkeyTextBox = new TextBox
             {
-                Location = new Point(110, 345),
+                Location = new Point(110, 395),
                 Size = new Size(120, 23),
                 PlaceholderText = "Ctrl+Alt+O"
             };
@@ -219,14 +252,14 @@ namespace ClipboardSyncClient.UI
             var closeHotkeyLabel = new Label
             {
                 Text = "Close App:",
-                Location = new Point(250, 345),
+                Location = new Point(250, 395),
                 Size = new Size(80, 23)
             };
             this.Controls.Add(closeHotkeyLabel);
 
             closeHotkeyTextBox = new TextBox
             {
-                Location = new Point(340, 345),
+                Location = new Point(340, 395),
                 Size = new Size(120, 23),
                 PlaceholderText = "Ctrl+Alt+X"
             };
@@ -235,7 +268,7 @@ namespace ClipboardSyncClient.UI
             var testHotkeyButton = new Button
             {
                 Text = "Test",
-                Location = new Point(470, 345),
+                Location = new Point(470, 395),
                 Size = new Size(60, 23),
                 FlatStyle = FlatStyle.Standard
             };
@@ -244,8 +277,8 @@ namespace ClipboardSyncClient.UI
 
             var hotkeyInfoLabel = new Label
             {
-                Text = "Shortcuts work when app is running at least in one mode",
-                Location = new Point(20, 370),
+                Text = "Shortcuts work when app is running in any mode",
+                Location = new Point(20, 420),
                 Size = new Size(400, 15),
                 Font = new Font("Segoe UI", 8),
                 ForeColor = Color.Gray
@@ -256,8 +289,8 @@ namespace ClipboardSyncClient.UI
             statusLabel = new Label
             {
                 Text = "",
-                Location = new Point(20, 395),
-                Size = new Size(400, 23),
+                Location = new Point(20, 445),
+                Size = new Size(500, 23),
                 ForeColor = Color.Red
             };
             this.Controls.Add(statusLabel);
@@ -266,7 +299,7 @@ namespace ClipboardSyncClient.UI
             cancelButton = new Button
             {
                 Text = "Cancel / Stop",
-                Location = new Point(360, 435),
+                Location = new Point(360, 485),
                 Size = new Size(90, 30),
                 FlatStyle = FlatStyle.Standard
             };
@@ -277,7 +310,7 @@ namespace ClipboardSyncClient.UI
             saveButton = new Button
             {
                 Text = "Save and Start",
-                Location = new Point(460, 435),
+                Location = new Point(460, 485),
                 Size = new Size(100, 30),
                 FlatStyle = FlatStyle.Standard
             };
@@ -288,7 +321,7 @@ namespace ClipboardSyncClient.UI
             var howToSetupButton = new Button
             {
                 Text = "How to Setup",
-                Location = new Point(20, 485),
+                Location = new Point(20, 535),
                 Size = new Size(90, 25)
             };
             howToSetupButton.Click += HowToSetup_Click;
@@ -297,7 +330,7 @@ namespace ClipboardSyncClient.UI
             var howToGetTokenButton = new Button
             {
                 Text = "How to Get Token",
-                Location = new Point(120, 485),
+                Location = new Point(120, 535),
                 Size = new Size(110, 25)
             };
             howToGetTokenButton.Click += HowToGetToken_Click;
@@ -306,7 +339,7 @@ namespace ClipboardSyncClient.UI
             var faqButton = new Button
             {
                 Text = "FAQs",
-                Location = new Point(240, 485),
+                Location = new Point(240, 535),
                 Size = new Size(60, 25)
             };
             faqButton.Click += FAQ_Click;
@@ -316,7 +349,7 @@ namespace ClipboardSyncClient.UI
             editAboutButton = new Button
             {
                 Text = "Edit About",
-                Location = new Point(310, 485),
+                Location = new Point(310, 535),
                 Size = new Size(80, 25),
                 FlatStyle = FlatStyle.Standard
             };
@@ -340,13 +373,23 @@ namespace ClipboardSyncClient.UI
         private void LoadExistingConfig()
         {
             var config = configManager.LoadConfig();
-            
+
             // Set values from config, or use defaults if empty
             appNameTextBox.Text = string.IsNullOrWhiteSpace(config.AppName) ? "Corridor" : config.AppName;
             tokenTextBox.Text = string.IsNullOrWhiteSpace(config.Token) ? "" : config.Token;
             wsUrlTextBox.Text = string.IsNullOrWhiteSpace(config.WebSocketUrl) ? "wss://corridor-worker.corridor-sync.workers.dev/ws" : config.WebSocketUrl;
             httpUrlTextBox.Text = string.IsNullOrWhiteSpace(config.HttpUrl) ? "https://corridor-worker.corridor-sync.workers.dev/api" : config.HttpUrl;
-            backgroundModeCheckBox.Checked = config.RunInBackground;
+
+            // Set mode radio buttons
+            if (config.Mode == AppMode.Silent)
+            {
+                silentModeRadio.Checked = true;
+            }
+            else
+            {
+                interactiveModeRadio.Checked = true;
+            }
+
             autoStartCheckBox.Checked = config.AutoStart;
             openHotkeyTextBox.Text = string.IsNullOrWhiteSpace(config.OpenHotkey) ? "Ctrl+Alt+O" : config.OpenHotkey;
             closeHotkeyTextBox.Text = string.IsNullOrWhiteSpace(config.CloseHotkey) ? "Ctrl+Alt+X" : config.CloseHotkey;
@@ -386,6 +429,10 @@ namespace ClipboardSyncClient.UI
             {
                 // Load existing config to preserve AboutText
                 var existingConfig = configManager.LoadConfig();
+
+                // Determine selected mode
+                AppMode selectedMode = silentModeRadio.Checked ? AppMode.Silent : AppMode.Interactive;
+
                 var config = new AppConfig
                 {
                     AppName = string.IsNullOrWhiteSpace(appNameTextBox.Text) ? "Corridor" : appNameTextBox.Text.Trim(),
@@ -393,7 +440,7 @@ namespace ClipboardSyncClient.UI
                     Token = tokenTextBox.Text.Trim(),
                     WebSocketUrl = wsUrlTextBox.Text.Trim(),
                     HttpUrl = httpUrlTextBox.Text.Trim(),
-                    RunInBackground = backgroundModeCheckBox.Checked,
+                    Mode = selectedMode,
                     AutoStart = autoStartCheckBox.Checked,
                     OpenHotkey = openHotkey,
                     CloseHotkey = closeHotkey

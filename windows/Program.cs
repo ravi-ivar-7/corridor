@@ -34,15 +34,15 @@ namespace ClipboardSyncClient
             {
                 // Silent mode - run directly without setup window
                 var silentConfig = configManager.LoadConfig();
-                if (!string.IsNullOrWhiteSpace(silentConfig.Token) && 
-                    !string.IsNullOrWhiteSpace(silentConfig.WebSocketUrl) && 
+                if (!string.IsNullOrWhiteSpace(silentConfig.Token) &&
+                    !string.IsNullOrWhiteSpace(silentConfig.WebSocketUrl) &&
                     !string.IsNullOrWhiteSpace(silentConfig.HttpUrl))
                 {
-                    // Force background mode for silent operation
-                    silentConfig.RunInBackground = true;
+                    // Force silent mode for silent operation
+                    silentConfig.Mode = AppMode.Silent;
                     configManager.SaveConfig(silentConfig);
-                    
-                    // Start application in background mode
+
+                    // Start application in silent mode
                     Application.Run(new MainApplication());
                 }
                 return;
@@ -72,20 +72,20 @@ namespace ClipboardSyncClient
             
             // After setup window closes, start main application if config was saved
             var finalConfig = configManager.LoadConfig();
-            if (!string.IsNullOrWhiteSpace(finalConfig.Token) && 
-                !string.IsNullOrWhiteSpace(finalConfig.WebSocketUrl) && 
+            if (!string.IsNullOrWhiteSpace(finalConfig.Token) &&
+                !string.IsNullOrWhiteSpace(finalConfig.WebSocketUrl) &&
                 !string.IsNullOrWhiteSpace(finalConfig.HttpUrl))
             {
-                // Start application (will run in background or normal mode based on user's choice)
-                if (finalConfig.RunInBackground)
+                // Start application (will run in silent or interactive mode based on user's choice)
+                if (finalConfig.Mode == AppMode.Silent)
                 {
-                    // For background mode, run without showing any windows
+                    // For silent mode, run without showing any windows
                     var mainApp = new MainApplication();
                     Application.Run(mainApp);
                 }
                 else
                 {
-                    // Normal mode with GUI
+                    // Interactive mode with GUI
                     Application.Run(new MainApplication());
                 }
             }

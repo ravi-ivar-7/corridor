@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using ClipboardSyncClient.Core;
 using ClipboardSyncClient.Network;
 using System.Text.Json;
+using Microsoft.Win32;
+using System.Net.NetworkInformation;
 
 namespace ClipboardSyncClient.Core
 {
@@ -30,8 +32,8 @@ namespace ClipboardSyncClient.Core
 
         private void LogMessage(string message)
         {
-            // Only log to console if not running in background mode
-            if (!config.RunInBackground)
+            // Only log to console if in interactive mode
+            if (config.Mode == AppMode.Interactive)
             {
                 Console.WriteLine(message);
             }
@@ -41,7 +43,7 @@ namespace ClipboardSyncClient.Core
         {
             this.configManager = configManager;
             config = configManager.LoadConfig();
-            
+
             webSocketClient = new WebSocketClient();
             webSocketClient.BufferSize = config.WebSocketBufferSize;
             httpClient = new ClipboardHttpClient(config.HttpUrl);
@@ -51,6 +53,12 @@ namespace ClipboardSyncClient.Core
             webSocketClient.Connected += OnWebSocketConnected;
             webSocketClient.Disconnected += OnWebSocketDisconnected;
             webSocketClient.Error += OnWebSocketError;
+
+            // Subscribe to power management events
+            SystemEvents.PowerModeChanged += OnPowerModeChanged;
+
+            // Subscribe to network availability changes
+            NetworkChange.NetworkAvailabilityChanged += OnNetworkAvailabilityChanged;
         }
 
         public async Task StartAsync()
@@ -346,8 +354,99 @@ namespace ClipboardSyncClient.Core
             return (config.WebSocketBufferSize, config.MaxContentLength, config.TruncateLargeContent);
         }
 
+        private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        {
+            try
+            {
+                switch (e.Mode)
+                {
+                    case PowerModes.Suspend:
+                        // Computer is going to sleep
+                        LogMessage("System suspending, preparing for sleep...");
+                        // Connection will be handled by ConnectionLoop
+                        break;
+
+                    case PowerModes.Resume:
+                        // Computer woke up from sleep/hibernation
+                        LogMessage("System resumed from sleep, reconnecting...");
+
+                        // Force reconnection after a brief delay to allow network to stabilize
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await Task.Delay(3000); // Wait for network to stabilize
+
+                                // Force disconnect to trigger reconnection
+                                if (webSocketClient != null)
+                                {
+                                    await webSocketClient.DisconnectAsync();
+                                }
+
+                                // Reset reconnection parameters
+                                reconnectDelay = 1000;
+                                useWebSocket = true;
+
+                                LogMessage("Reconnection initiated after system resume");
+                            }
+                            catch (Exception ex)
+                            {
+                                LogMessage($"Error during resume reconnection: {ex.Message}");
+                            }
+                        });
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Error handling power mode change: {ex.Message}");
+            }
+        }
+
+        private void OnNetworkAvailabilityChanged(object? sender, NetworkAvailabilityEventArgs e)
+        {
+            try
+            {
+                if (e.IsAvailable)
+                {
+                    LogMessage("Network available, initiating reconnection...");
+
+                    // Network is back, try to reconnect
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await Task.Delay(2000); // Brief delay for network stabilization
+
+                            // Reset reconnection parameters to trigger immediate reconnect
+                            reconnectDelay = 1000;
+                            useWebSocket = true;
+
+                            LogMessage("Reconnection triggered by network availability");
+                        }
+                        catch (Exception ex)
+                        {
+                            LogMessage($"Error during network reconnection: {ex.Message}");
+                        }
+                    });
+                }
+                else
+                {
+                    LogMessage("Network unavailable");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Error handling network availability change: {ex.Message}");
+            }
+        }
+
         public void Dispose()
         {
+            // Unsubscribe from events
+            SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+            NetworkChange.NetworkAvailabilityChanged -= OnNetworkAvailabilityChanged;
+
             StopAsync().Wait();
             webSocketClient?.Dispose();
             httpClient?.Dispose();
