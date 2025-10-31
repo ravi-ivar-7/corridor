@@ -1,4 +1,4 @@
-import { Download, Monitor, Globe, CheckCircle, ArrowRight, Smartphone } from 'lucide-react';
+import { Download, Monitor, Globe, CheckCircle, ArrowRight, Smartphone, Terminal } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DownloadsPage() {
@@ -16,7 +16,7 @@ export default function DownloadsPage() {
         </div>
 
         {/* Download Options */}
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Windows Client */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow">
             <div className="flex items-center mb-6">
@@ -154,6 +154,82 @@ export default function DownloadsPage() {
             </a>
           </div>
 
+          {/* Linux Client */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                <Terminal className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Linux Client</h2>
+                <p className="text-sm text-gray-500">Desktop application</p>
+              </div>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Download the native Linux application for seamless clipboard synchronization.
+              Works on all major distributions with X11 or Wayland.
+            </p>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Works on Ubuntu, Fedora, Arch, etc.</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>X11 and Wayland support</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>System tray integration</span>
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Auto-start with systemd</span>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="text-sm text-gray-600 mb-2">
+                <strong>System Requirements:</strong>
+              </div>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Any modern Linux distribution</li>
+                <li>• Python 3.8+ (included in AppImage)</li>
+                <li>• Internet connection</li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center mb-2">
+                <CheckCircle className="h-4 w-4 text-blue-600 mr-2" />
+                <span className="text-sm font-medium text-blue-800">AppImage Format</span>
+              </div>
+              <p className="text-xs text-blue-700 mb-2">
+                AppImage is a universal Linux application format that runs on all distributions.
+              </p>
+              <p className="text-xs text-blue-700">
+                Simply download, make executable (<code className="bg-blue-100 px-1 rounded">chmod +x</code>), and run.
+              </p>
+            </div>
+
+            <a
+              href="/Corridor-x86_64.AppImage"
+              download="Corridor-x86_64.AppImage"
+              className="w-full bg-orange-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-orange-700 transition-colors flex items-center justify-center mb-3"
+            >
+              <Download className="h-5 w-5 mr-2" />
+              Download for Linux
+            </a>
+
+            <div className="text-center text-xs text-gray-500">
+              Alternative:
+              <a href="/corridor.deb" className="text-blue-600 hover:underline ml-1">.deb</a> •
+              <a href="/corridor.rpm" className="text-blue-600 hover:underline ml-1">.rpm</a>
+            </div>
+          </div>
+
           {/* Web App */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow">
             <div className="flex items-center mb-6">
@@ -225,7 +301,7 @@ export default function DownloadsPage() {
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Download & Install</h3>
               <p className="text-sm text-gray-600">
-                Download the Windows or Android client, or open the web app in your browser.
+                Download the client for your platform (Windows, Android, Linux), or open the web app in your browser.
               </p>
             </div>
             

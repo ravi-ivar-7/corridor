@@ -1,0 +1,30 @@
+# Core Dependencies
+websockets>=12.0        # WebSocket client
+requests>=2.31.0        # HTTP client
+pyperclip>=1.8.2       # Clipboard access (X11)
+
+# GUI Framework (Choose one)
+# Option 1: PyQt5 (Recommended)
+PyQt5>=5.15.9
+PyQt5-Qt5>=5.15.2
+
+# Option 2: PyQt6 (Modern alternative)
+# PyQt6>=6.6.0
+
+# Option 3: GTK (GNOME integration)
+# PyGObject>=3.46.0
+
+# System Integration
+python-daemon>=3.0.1    # Daemon/service management
+psutil>=5.9.6          # Process management (single instance)
+
+# Utilities
+aiofiles>=23.2.1       # Async file operations
+python-dotenv>=1.0.0   # Environment configuration
+
+# Development Dependencies (optional)
+# pytest>=7.4.3
+# pytest-asyncio>=0.21.1
+# black>=23.12.0
+# mypy>=1.7.1
+# pylint>=3.0.3

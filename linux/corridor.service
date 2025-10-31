@@ -1,0 +1,23 @@
+[Unit]
+Description=Corridor Clipboard Sync Service
+Documentation=https://github.com/yourusername/corridor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/corridor --daemon
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.config/corridor
+
+[Install]
+WantedBy=default.target
