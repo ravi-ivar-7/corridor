@@ -6,7 +6,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.corridor.service.ClipboardAccessibilityService
 import com.corridor.util.HistoryStore
 import com.corridor.util.Preferences
 import kotlinx.coroutines.launch
@@ -20,7 +19,8 @@ fun MainScreen(
     onRequestPermissions: () -> Unit,
     onRequestBatteryOptimization: () -> Unit,
     onStartService: (String, Boolean, Boolean, Boolean, Boolean) -> Unit,
-    onStopService: () -> Unit
+    onStopService: () -> Unit,
+    onShowHowToUse: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -31,22 +31,7 @@ fun MainScreen(
     var notifyRemote by remember { mutableStateOf(Preferences.loadNotifyRemote(ctx)) }
     var notifyErrors by remember { mutableStateOf(Preferences.loadNotifyErrors(ctx)) }
     var autoStart by remember { mutableStateOf(Preferences.loadAutostart(ctx)) }
-
-    var isAccessibilityEnabled by remember { mutableStateOf(ClipboardAccessibilityService.isEnabled(ctx)) }
     var historyRefreshTrigger by remember { mutableIntStateOf(0) }
-
-    // Update accessibility status when app comes back to foreground
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                isAccessibilityEnabled = ClipboardAccessibilityService.isEnabled(ctx)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
 
     val history = remember(historyVersion, historyRefreshTrigger) {
         android.util.Log.d("MainScreen", "Reloading history: historyVersion=$historyVersion, historyRefreshTrigger=$historyRefreshTrigger")
@@ -64,7 +49,6 @@ fun MainScreen(
             token = token,
             history = history,
             historyRefreshTrigger = historyRefreshTrigger,
-            isAccessibilityEnabled = isAccessibilityEnabled,
             drawerState = drawerState,
             onStopService = onStopService,
             onOpenDrawer = { scope.launch { drawerState.open() } },
@@ -74,7 +58,6 @@ fun MainScreen(
         SetupView(
             status = status,
             error = error,
-            isAccessibilityEnabled = isAccessibilityEnabled,
             token = token,
             silentMode = silentMode,
             notifyLocal = notifyLocal,
@@ -101,7 +84,8 @@ fun MainScreen(
                 onRequestPermissions()
                 onRequestBatteryOptimization()
                 onStartService(token, silentMode, notifyLocal, notifyRemote, notifyErrors)
-            }
+            },
+            onShowHowToUse = onShowHowToUse
         )
     }
 }

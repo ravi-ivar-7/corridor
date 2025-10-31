@@ -52,7 +52,7 @@ This will:
 - ✅ Build signed release APK
 - ✅ Show APK location when done
 
-**Output:** `app\build\outputs\apk\release\app-release.apk`
+**Output:** `app\build\outputs\apk\release\Corridor.apk`
 
 ### Option 2: One-Command Build
 
@@ -160,7 +160,7 @@ After successful build:
 
 ```
 📦 APK Location:
-E:\corridor\android\app\build\outputs\apk\release\app-release.apk
+E:\corridor\android\app\build\outputs\apk\release\Corridor.apk
 ```
 
 ### Step 6: Verify APK (Optional)
@@ -168,13 +168,13 @@ E:\corridor\android\app\build\outputs\apk\release\app-release.apk
 Check APK signature:
 
 ```bash
-jarsigner -verify -verbose -certs app\build\outputs\apk\release\app-release.apk
+jarsigner -verify -verbose -certs app\build\outputs\apk\release\Corridor.apk
 ```
 
 Get APK info:
 
 ```bash
-aapt dump badging app\build\outputs\apk\release\app-release.apk
+aapt dump badging app\build\outputs\apk\release\Corridor.apk
 ```
 
 ---
@@ -188,7 +188,7 @@ cd E:\corridor\android
 gradlew.bat assembleDebug
 ```
 
-**Output:** `app\build\outputs\apk\debug\app-debug.apk`
+**Output:** `app\build\outputs\apk\debug\Corridor-debug.apk`
 
 ⚠️ **Warning:** Debug APKs show more security warnings than signed release APKs!
 
@@ -212,7 +212,7 @@ For your security, your phone is not allowed to install apps from this source.
 
 #### 2. "This type of file can harm your device"
 ```
-This type of file can harm your device. Do you want to keep app-release.apk anyway?
+This type of file can harm your device. Do you want to keep Corridor.apk anyway?
 ```
 
 **Solution:** This is a standard warning for all APKs. Click **"Keep"** or **"Download anyway"**
@@ -262,7 +262,7 @@ Users can download from your website at `/downloads`
 
 ### Method 2: Direct File Sharing
 
-1. Send `app-release.apk` directly via:
+1. Send `Corridor.apk` directly via:
    - Email attachment
    - USB transfer
    - Cloud storage (Dropbox, Google Drive, etc.)
@@ -280,7 +280,7 @@ Users can download from your website at `/downloads`
 
 Example:
 ```
-https://github.com/yourusername/corridor/releases/download/v1.0/app-release.apk
+https://github.com/yourusername/corridor/releases/download/v1.0/Corridor.apk
 ```
 
 ### Method 3: GitHub Releases (Recommended)
@@ -290,7 +290,7 @@ https://github.com/yourusername/corridor/releases/download/v1.0/app-release.apk
 git tag -a v1.0 -m "Release version 1.0"
 git push origin v1.0
 
-# Upload app-release.apk to GitHub Releases page
+# Upload Corridor.apk to GitHub Releases page
 ```
 
 ### Providing SHA256 Checksum (Optional Security)
@@ -299,10 +299,10 @@ Let users verify APK integrity:
 
 ```bash
 # Windows
-certutil -hashfile app\build\outputs\apk\release\app-release.apk SHA256
+certutil -hashfile app\build\outputs\apk\release\Corridor.apk SHA256
 
 # Linux/Mac
-sha256sum app/build/outputs/apk/release/app-release.apk
+sha256sum app/build/outputs/apk/release/Corridor.apk
 ```
 
 Share the checksum with your APK download link.
@@ -436,7 +436,7 @@ build-release.bat
 
 ### Output Location
 ```
-E:\corridor\android\app\build\outputs\apk\release\app-release.apk
+E:\corridor\android\app\build\outputs\apk\release\Corridor.apk
 ```
 
 ---

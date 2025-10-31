@@ -57,9 +57,13 @@ class MainActivity : ComponentActivity() {
     private val _error = mutableStateOf("")
     private val _historyVersion = mutableStateOf(0)
     private val _isServiceRunning = mutableStateOf(false)
+    private val _showHowToUse = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Check if we should show "How to Use" screen
+        _showHowToUse.value = intent?.getBooleanExtra("SHOW_HOW_TO_USE", false) ?: false
 
         val filter = IntentFilter().apply {
             addAction(ClipboardSyncService.ACTION_STATUS)
@@ -73,6 +77,15 @@ class MainActivity : ComponentActivity() {
 
         // Check if service is already running
         _isServiceRunning.value = isServiceRunning(this)
+
+        // Request current status if service is already running
+        if (_isServiceRunning.value) {
+            android.util.Log.d("MainActivity", "Service is running, requesting current status")
+            val statusRequest = Intent(ClipboardSyncService.ACTION_REQUEST_STATUS).apply {
+                setPackage(packageName)
+            }
+            sendBroadcast(statusRequest)
+        }
 
         val savedToken = Preferences.loadToken(this)
         if (Preferences.loadAutostart(this) && savedToken.length >= 3 && !_isServiceRunning.value) {
@@ -92,8 +105,16 @@ class MainActivity : ComponentActivity() {
             val error by _error
             val historyVersion by _historyVersion
             val isServiceRunning by _isServiceRunning
+            val showHowToUse by _showHowToUse
 
-            MainScreen(
+            if (showHowToUse) {
+                com.corridor.ui.screens.HowToUseScreen(
+                    onBack = {
+                        _showHowToUse.value = false
+                    }
+                )
+            } else {
+                MainScreen(
                 status = status,
                 error = error,
                 historyVersion = historyVersion,
@@ -130,8 +151,12 @@ class MainActivity : ComponentActivity() {
                     stopService(Intent(this, ClipboardSyncService::class.java))
                     _isServiceRunning.value = false
                     _status.value = "stopped"
+                },
+                onShowHowToUse = {
+                    _showHowToUse.value = true
                 }
             )
+            }
         }
     }
 

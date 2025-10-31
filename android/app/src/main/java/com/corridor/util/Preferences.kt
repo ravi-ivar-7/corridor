@@ -48,7 +48,7 @@ object Preferences {
     }
     fun loadNotifyErrors(ctx: Context): Boolean {
         val p = prefs(ctx)
-        return p.getBoolean(KEY_NOTIFY_ERRORS, p.getBoolean(KEY_NOTIFY, true))
+        return p.getBoolean(KEY_NOTIFY_ERRORS, p.getBoolean(KEY_NOTIFY, false)) // Default: false
     }
 
     fun loadAutostart(ctx: Context): Boolean = prefs(ctx).getBoolean(KEY_AUTOSTART, false)

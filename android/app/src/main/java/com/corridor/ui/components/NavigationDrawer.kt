@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.corridor.R
-import com.corridor.service.ClipboardAccessibilityService
 import com.corridor.ui.icons.CustomIcons
 import com.corridor.util.Preferences
 import kotlinx.coroutines.launch
@@ -27,9 +26,9 @@ fun AppNavigationDrawer(
     token: String,
     status: String,
     error: String,
-    isAccessibilityEnabled: Boolean,
     drawerState: DrawerState,
-    onStopService: () -> Unit
+    onStopService: () -> Unit,
+    onShowHowToUse: () -> Unit
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -38,13 +37,6 @@ fun AppNavigationDrawer(
     val notifyLocal = Preferences.loadNotifyLocal(ctx)
     val notifyRemote = Preferences.loadNotifyRemote(ctx)
     val notifyErrors = Preferences.loadNotifyErrors(ctx)
-    var accessibilityCheck by remember { mutableStateOf(isAccessibilityEnabled) }
-
-    LaunchedEffect(drawerState.isOpen) {
-        if (drawerState.isOpen) {
-            accessibilityCheck = ClipboardAccessibilityService.isEnabled(ctx)
-        }
-    }
 
     ModalDrawerSheet(modifier = Modifier.width(320.dp)) {
         Column(
@@ -68,58 +60,12 @@ fun AppNavigationDrawer(
 
             HorizontalDivider()
 
-            // Status Section
-            NavigationSection(title = "Status") {
-                StatusItem(
-                    icon = when (status) {
-                        "connected" -> CustomIcons.CircleCheck
-                        "disconnected", "closed" -> CustomIcons.CircleX
-                        else -> CustomIcons.CircleDot
-                    },
-                    label = "Connection",
-                    value = when (status) {
-                        "connected" -> "Connected"
-                        "disconnected" -> "Disconnected"
-                        "closed" -> "Closed"
-                        "connecting" -> "Connecting..."
-                        "starting" -> "Starting..."
-                        else -> status
-                    },
-                    isError = status in listOf("disconnected", "closed")
-                )
-
-                StatusItem(
-                    icon = if (accessibilityCheck) CustomIcons.Eye else CustomIcons.EyeOff,
-                    label = "Accessibility",
-                    value = if (accessibilityCheck) "Enabled" else "Disabled",
-                    isError = !accessibilityCheck,
-                    action = if (!accessibilityCheck) {
-                        {
-                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                            ctx.startActivity(intent)
-                        }
-                    } else null
-                )
-
-                if (error.isNotBlank()) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    StatusItem(
-                        icon = Icons.Outlined.Warning,
-                        label = "Error",
-                        value = error,
-                        isError = true
-                    )
-                }
-            }
-
-            HorizontalDivider()
-
             // Notifications Section
             NavigationSection(title = "Notifications") {
                 NotificationItem("Silent Mode", silentMode)
                 NotificationItem("Local Copy", notifyLocal)
                 NotificationItem("Remote Update", notifyRemote)
-                NotificationItem("Errors", notifyErrors)
+                NotificationItem("Corridor Notifications", notifyErrors)
 
                 Text(
                     text = "To change notification settings: Stop the service, make the required notification changes, and start service again",
@@ -127,6 +73,39 @@ fun AppNavigationDrawer(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
+            }
+
+            HorizontalDivider()
+
+            // How to Use Section
+            NavigationSection(title = "Help") {
+                Surface(
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onShowHowToUse()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.HelpOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "How to Use Corridor",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
             }
 
             HorizontalDivider()

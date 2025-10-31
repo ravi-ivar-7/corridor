@@ -5,12 +5,15 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.corridor.ui.components.AppHeader
 
@@ -19,7 +22,6 @@ import com.corridor.ui.components.AppHeader
 fun SetupView(
     status: String,
     error: String,
-    isAccessibilityEnabled: Boolean,
     token: String,
     silentMode: Boolean,
     notifyLocal: Boolean,
@@ -34,7 +36,8 @@ fun SetupView(
     onAutoStartChange: (Boolean) -> Unit,
     onRequestPermissions: () -> Unit,
     onRequestBatteryOptimization: () -> Unit,
-    onStartService: () -> Unit
+    onStartService: () -> Unit,
+    onShowHowToUse: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
 
@@ -42,9 +45,10 @@ fun SetupView(
         topBar = {
             AppHeader(
                 status = if (status.isBlank()) "Not started" else status,
-                isAccessibilityEnabled = isAccessibilityEnabled,
                 onMenuClick = { },
-                onStopClick = { }
+                onStopClick = { },
+                onReconnectClick = { },
+                onShowHowToUse = onShowHowToUse
             )
         }
     ) { paddingValues ->
@@ -61,11 +65,9 @@ fun SetupView(
                     Spacer(Modifier.height(4.dp))
                     WelcomeMessage()
                 }
+                item { HowToUseInfoCard() }
                 if (error.isNotBlank()) {
                     item { ErrorCard(error) }
-                }
-                if (!isAccessibilityEnabled) {
-                    item { AccessibilityWarning(ctx) }
                 }
                 item { ConfigurationSection(token, onTokenChange) }
                 item {
@@ -103,6 +105,212 @@ fun SetupView(
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     Text("Start Service", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HowToUseInfoCard() {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Outlined.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "How Corridor Works",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+
+            // Receiving - Automatic
+            Surface(
+                color = Color(0xFF4CAF50).copy(alpha = 0.08f),
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        Icons.Outlined.Download,
+                        contentDescription = null,
+                        tint = Color(0xFF4CAF50),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Receiving (Automatic)",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color(0xFF2E7D32)
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Updates from other devices are automatically copied to your clipboard.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Sending - Manual
+            Surface(
+                color = Color(0xFFFF9800).copy(alpha = 0.08f),
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        Icon(
+                            Icons.Outlined.Upload,
+                            contentDescription = null,
+                            tint = Color(0xFFFF9800),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Sending (Manual)",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Color(0xFFE65100)
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "Due to Android restrictions, use one of these methods:",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // Method 1: Quick Settings Tile
+                    Surface(
+                        color = Color(0xFF2196F3).copy(alpha = 0.1f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    shape = MaterialTheme.shapes.small,
+                                    color = Color(0xFF2196F3).copy(alpha = 0.2f)
+                                ) {
+                                    Text(
+                                        "1",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = Color(0xFF1976D2),
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                    )
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "Quick Settings Tile",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = Color(0xFF1565C0),
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Select text → Swipe down from top → Tap \"Corridor Sync\"",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(Modifier.height(8.dp))
+
+                            // Setup instruction with subtle yellow background
+                            Surface(
+                                color = Color(0xFFFFF59D).copy(alpha = 0.3f),
+                                shape = MaterialTheme.shapes.extraSmall,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(8.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Text(
+                                        "⚙️",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.padding(end = 6.dp)
+                                    )
+                                    Column {
+                                        Text(
+                                            "First time setup:",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color(0xFFF57F17),
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                        )
+                                        Spacer(Modifier.height(2.dp))
+                                        Text(
+                                            "Settings → Quick Settings → Edit → Drag \"Corridor Sync\" to top",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF827717)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // Method 2: Share Menu
+                    Surface(
+                        color = Color(0xFF4CAF50).copy(alpha = 0.1f),
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    shape = MaterialTheme.shapes.small,
+                                    color = Color(0xFF4CAF50).copy(alpha = 0.2f)
+                                ) {
+                                    Text(
+                                        "2",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = Color(0xFF388E3C),
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                    )
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "Share Menu",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = Color(0xFF2E7D32),
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Select text → Click Share → Choose \"Corridor\"",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -152,44 +360,6 @@ private fun ErrorCard(error: String) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )
-        }
-    }
-}
-
-@Composable
-private fun AccessibilityWarning(ctx: Context) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "⚠️ Background Access Required",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = "Enable accessibility service for background clipboard monitoring. The app only reads clipboard content and doesn't interact with your screen.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                    ctx.startActivity(intent)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                ),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Text("Open Accessibility Settings", style = MaterialTheme.typography.labelSmall)
-            }
         }
     }
 }
@@ -276,8 +446,8 @@ private fun NotificationSettings(
             NotificationCheckbox(
                 checked = notifyErrors,
                 onCheckedChange = onNotifyErrorsChange,
-                title = "Errors",
-                description = "Notify on sync errors or issues",
+                title = "Corridor Notifications",
+                description = "Status, errors, connection updates, and system messages",
                 enabled = !silentMode
             )
         }

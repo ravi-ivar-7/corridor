@@ -5,11 +5,11 @@ echo ======================================
 echo.
 
 REM Check if release APK exists
-if exist "app\build\outputs\apk\release\app-release.apk" (
-    set "SOURCE=app\build\outputs\apk\release\app-release.apk"
+if exist "app\build\outputs\apk\release\Corridor.apk" (
+    set "SOURCE=app\build\outputs\apk\release\Corridor.apk"
     echo Using release APK (signed)
-) else if exist "app\build\intermediates\apk\debug\app-debug.apk" (
-    set "SOURCE=app\build\intermediates\apk\debug\app-debug.apk"
+) else if exist "app\build\outputs\apk\debug\Corridor-debug.apk" (
+    set "SOURCE=app\build\outputs\apk\debug\Corridor-debug.apk"
     echo WARNING: Using debug APK (release not found)
 ) else (
     echo ERROR: No APK found!

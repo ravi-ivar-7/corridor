@@ -29,10 +29,12 @@ class ClipboardSyncService : Service() {
         const val ACTION_MANUAL_SYNC = "com.corridor.MANUAL_SYNC"
         const val EXTRA_SYNC_TEXT = "sync_text"
         const val ACTION_CLEAR_HISTORY = "com.corridor.CLEAR_HISTORY"
+        const val ACTION_REQUEST_STATUS = "com.corridor.REQUEST_STATUS"
     }
 
     private val CHANNEL_ID = "CorridorClipboardSync"
     private val NOTIF_ID = 1001
+    private val CLIPBOARD_NOTIF_ID = 1002 // Single ID for all clipboard notifications
     private var token: String = ""
     private var silentMode: Boolean = false
     private var notifyLocal: Boolean = true
@@ -40,38 +42,19 @@ class ClipboardSyncService : Service() {
     private var notifyErrors: Boolean = true
     private var wsClient: ClipboardWebSocketClient? = null
     private var lastClipboard: String = ""
-    private var accessibilityClipboardReceiver: BroadcastReceiver? = null
     private var manualSyncReceiver: BroadcastReceiver? = null
     private var clearHistoryReceiver: BroadcastReceiver? = null
+    private var statusRequestReceiver: BroadcastReceiver? = null
     private var serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var debounceJob: Job? = null
     private var reconnectAttempts: Int = 0
     private var reconnectJob: Job? = null
+    private var currentStatus: String = "starting"
+    private var currentError: String? = null
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-
-        // Listen for clipboard changes from the accessibility service
-        accessibilityClipboardReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                Log.d(TAG, "Broadcast received: ${intent?.action}")
-                if (intent?.action == ClipboardAccessibilityService.ACTION_CLIPBOARD_CHANGED) {
-                    val text = intent.getStringExtra(ClipboardAccessibilityService.EXTRA_CLIPBOARD_TEXT) ?: ""
-                    Log.d(TAG, "Clipboard text from accessibility service: ${text.take(20)}...")
-                    handleClipboardChange(text)
-                } else {
-                    Log.w(TAG, "Unexpected action: ${intent?.action}")
-                }
-            }
-        }
-        val filter = IntentFilter(ClipboardAccessibilityService.ACTION_CLIPBOARD_CHANGED)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(accessibilityClipboardReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(accessibilityClipboardReceiver, filter)
-        }
-        Log.d(TAG, "Clipboard broadcast receiver registered with filter: ${ClipboardAccessibilityService.ACTION_CLIPBOARD_CHANGED}")
 
         // Listen for manual sync requests
         manualSyncReceiver = object : BroadcastReceiver() {
@@ -108,9 +91,37 @@ class ClipboardSyncService : Service() {
             registerReceiver(clearHistoryReceiver, clearHistoryFilter)
         }
         Log.d(TAG, "Clear history receiver registered")
+
+        // Listen for status requests
+        statusRequestReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                Log.d(TAG, "Status request broadcast received: ${intent?.action}")
+                if (intent?.action == ACTION_REQUEST_STATUS) {
+                    Log.d(TAG, "Sending current status: $currentStatus, error: $currentError")
+                    sendStatusBroadcast(currentStatus, currentError)
+                }
+            }
+        }
+        val statusRequestFilter = IntentFilter(ACTION_REQUEST_STATUS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(statusRequestReceiver, statusRequestFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(statusRequestReceiver, statusRequestFilter)
+        }
+        Log.d(TAG, "Status request receiver registered")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Check if this is a manual sync request
+        if (intent?.action == ACTION_MANUAL_SYNC) {
+            val text = intent.getStringExtra(EXTRA_SYNC_TEXT)
+            if (!text.isNullOrBlank()) {
+                Log.d(TAG, "Manual sync received via onStartCommand: ${text.take(20)}...")
+                handleManualSync(text)
+                return START_NOT_STICKY
+            }
+        }
+
         token = intent?.getStringExtra("TOKEN") ?: ""
         silentMode = intent?.getBooleanExtra("SILENT", false) ?: false
         notifyLocal = intent?.getBooleanExtra("NOTIFY_LOCAL", true) ?: true
@@ -118,7 +129,7 @@ class ClipboardSyncService : Service() {
         notifyErrors = intent?.getBooleanExtra("NOTIFY_ERRORS", true) ?: true
         
         Log.d(TAG, "Service starting with token: ${token.take(5)}...")
-        startForeground(NOTIF_ID, buildNotification("Clipboard sync service running"))
+        startForeground(NOTIF_ID, buildNotification("Corridor Clipboard Sync", "Service running"))
 
         // Send initial status
         sendStatusBroadcast("starting", null)
@@ -132,51 +143,14 @@ class ClipboardSyncService : Service() {
 
         startWebSocket()
 
-        // NOTE: On Android 10+, clipboard can ONLY be read by:
-        // 1. Apps in foreground
-        // 2. Accessibility services (if properly configured)
-        // We do NOT poll clipboard here - it will fail with "not in focus" error
-        // Instead, we rely on ClipboardAccessibilityService to broadcast changes
+        // NOTE: Clipboard syncing is now fully manual via:
+        // 1. Quick Settings Tile (user taps tile after copying)
+        // 2. Share menu (user shares text to Corridor)
+        // This avoids Android 10+ restrictions without needing accessibility service
 
         return START_STICKY
     }
 
-    private fun handleClipboardChange(text: String) {
-        Log.d(TAG, "handleClipboardChange called with text length: ${text.length}")
-
-        if (text.isBlank()) {
-            Log.d(TAG, "Text is blank, ignoring")
-            return
-        }
-
-        if (text == lastClipboard) {
-            Log.d(TAG, "Text unchanged, ignoring")
-            return
-        }
-
-        if (text.length > 10000) {
-            Log.w(TAG, "Clipboard too large (${text.length} chars), not syncing")
-            if (!silentMode && notifyErrors) showClipboardNotification("Clipboard too large; not synced")
-            return
-        }
-
-        Log.d(TAG, "Processing clipboard change: ${text.take(50)}...")
-        debounceJob?.cancel()
-        debounceJob = serviceScope.launch {
-            delay(150)
-            lastClipboard = text
-            Log.d(TAG, "Sending to WebSocket...")
-            wsClient?.sendClipboardUpdate(text)
-            Log.d(TAG, "Adding to history store...")
-            HistoryStore.add(this@ClipboardSyncService, "local", text)
-            sendBroadcast(Intent(ACTION_HISTORY_UPDATE).apply { setPackage(packageName) })
-            if (!silentMode && notifyLocal) {
-                Log.d(TAG, "Showing notification")
-                showClipboardNotification("Copied: ${text.take(50)}")
-            }
-            Log.d(TAG, "Clipboard change processed successfully")
-        }
-    }
 
     private fun handleManualSync(text: String) {
         Log.d(TAG, "handleManualSync called with text length: ${text.length}")
@@ -193,7 +167,7 @@ class ClipboardSyncService : Service() {
 
         if (text.length > 10000) {
             Log.w(TAG, "Manual sync text too large (${text.length} chars), not syncing")
-            if (!silentMode && notifyErrors) showClipboardNotification("Text too large; not synced")
+            if (!silentMode && notifyErrors) showClipboardNotification("Sync Failed", "Text too large; not synced")
             return
         }
 
@@ -208,7 +182,7 @@ class ClipboardSyncService : Service() {
             sendBroadcast(Intent(ACTION_HISTORY_UPDATE).apply { setPackage(packageName) })
             if (!silentMode && notifyLocal) {
                 Log.d(TAG, "Showing manual sync notification")
-                showClipboardNotification("Synced: ${text.take(50)}")
+                showClipboardNotification("Pushed to Corridor", text.take(50) + if (text.length > 50) "..." else "")
             }
             Log.d(TAG, "Manual sync completed")
         }
@@ -242,7 +216,7 @@ class ClipboardSyncService : Service() {
             onError = { e ->
                 Log.e(TAG, "WebSocket error: $e")
                 sendStatusBroadcast(null, e)
-                if (!silentMode && notifyErrors) showClipboardNotification("Error: $e")
+                if (!silentMode && notifyErrors) showClipboardNotification("Connection Failed", e)
                 scheduleReconnect()
             },
             onHistory = ::onHistoryReceived,
@@ -264,12 +238,14 @@ class ClipboardSyncService : Service() {
     }
 
     override fun onDestroy() {
+        Log.d(TAG, "Service onDestroy called")
         reconnectJob?.cancel()
         wsClient?.disconnect()
-        accessibilityClipboardReceiver?.let { unregisterReceiver(it) }
         manualSyncReceiver?.let { unregisterReceiver(it) }
         clearHistoryReceiver?.let { unregisterReceiver(it) }
+        statusRequestReceiver?.let { unregisterReceiver(it) }
         serviceScope.cancel()
+        sendStatusBroadcast("stopped", null)
         super.onDestroy()
     }
 
@@ -278,41 +254,21 @@ class ClipboardSyncService : Service() {
         if (text == lastClipboard) return
         lastClipboard = text
 
-        // Write to clipboard via accessibility service (required for Android 10+ background access)
-        if (ClipboardAccessibilityService.isEnabled(this)) {
-            try {
-                val intent = Intent(ClipboardAccessibilityService.ACTION_WRITE_CLIPBOARD).apply {
-                    setClass(this@ClipboardSyncService, ClipboardAccessibilityService::class.java)
-                    putExtra(ClipboardAccessibilityService.EXTRA_CLIPBOARD_TEXT, text)
-                }
-                startService(intent)
-                Log.d(TAG, "Clipboard write request sent to accessibility service")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error sending clipboard write request: ${e.message}", e)
-                if (!silentMode && notifyErrors) showClipboardNotification("Cannot update clipboard - accessibility service error")
-                return
-            }
-        } else {
-            // Fallback: try direct write (might fail on Android 10+)
-            try {
-                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("Corridor Clipboard", text))
-                Log.d(TAG, "Clipboard updated from remote (direct)")
-            } catch (e: SecurityException) {
-                Log.e(TAG, "Cannot write to clipboard - enable accessibility service: ${e.message}")
-                if (!silentMode && notifyErrors) showClipboardNotification("Enable accessibility service for background clipboard sync")
-                return
-            } catch (e: Exception) {
-                Log.e(TAG, "Error writing to clipboard: ${e.message}", e)
-                if (!silentMode && notifyErrors) showClipboardNotification("Failed to update clipboard: ${e.message}")
-                return
-            }
+        // Write to clipboard (direct write - works when app has focus or user interacts with notification)
+        try {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("Corridor Clipboard", text))
+            Log.d(TAG, "Clipboard updated from remote")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error writing to clipboard: ${e.message}", e)
+            if (!silentMode && notifyErrors) showClipboardNotification("Update Failed", "Could not update clipboard")
+            return
         }
 
         // Note: History is added by onHistoryItemReceived callback which receives the full item with timestamp
         // This function only writes to clipboard
 
-        if (!silentMode && notifyRemote) showClipboardNotification("Clipboard updated from server: ${text.take(50)}...")
+        if (!silentMode && notifyRemote) showClipboardNotification("Pulled from Corridor", text.take(50) + if (text.length > 50) "..." else "")
     }
 
     private fun onHistoryReceived(items: List<HistoryItem>) {
@@ -344,6 +300,11 @@ class ClipboardSyncService : Service() {
 
     private fun sendStatusBroadcast(status: String?, error: String?) {
         Log.d(TAG, "sendStatusBroadcast: status='$status', error='$error', package='$packageName'")
+
+        // Update current status
+        status?.let { currentStatus = it }
+        currentError = error
+
         val i = Intent(ACTION_STATUS).apply {
             setPackage(packageName)
             status?.let { putExtra(EXTRA_STATUS, it) }
@@ -353,9 +314,9 @@ class ClipboardSyncService : Service() {
         Log.d(TAG, "Status broadcast sent")
     }
 
-    private fun buildNotification(content: String): Notification {
+    private fun buildNotification(title: String, content: String): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Corridor Clipboard Sync")
+            .setContentTitle(title)
             .setContentText(content)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -365,10 +326,11 @@ class ClipboardSyncService : Service() {
             .build()
     }
 
-    private fun showClipboardNotification(content: String) {
-        val notif = buildNotification(content)
+    private fun showClipboardNotification(title: String, content: String) {
+        val notif = buildNotification(title, content)
         val notifManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notifManager.notify(NOTIF_ID + 1, notif)
+        // Use single notification ID - replaces previous notification
+        notifManager.notify(CLIPBOARD_NOTIF_ID, notif)
     }
 
     private fun createNotificationChannel() {

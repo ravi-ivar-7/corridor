@@ -85,7 +85,7 @@ echo ======================================
 echo Build Successful!
 echo ======================================
 echo.
-echo APK Location: app\build\outputs\apk\release\app-release.apk
+echo APK Location: app\build\outputs\apk\release\Corridor.apk
 echo.
 echo You can now share this APK file!
 echo.

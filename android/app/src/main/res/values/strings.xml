@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Corridor</string>
-    <string name="accessibility_service_description">Allows Corridor to monitor clipboard changes in the background for seamless synchronization across your devices. This service only reads clipboard content and does not interact with your screen or other apps.</string>
+    <string name="quick_settings_tile_label">Corridor Sync</string>
 </resources>
 

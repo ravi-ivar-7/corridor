@@ -25,6 +25,7 @@ import com.corridor.service.ClipboardSyncService
 import com.corridor.ui.components.AppHeader
 import com.corridor.ui.components.AppNavigationDrawer
 import com.corridor.util.HistoryStore
+import com.corridor.util.Preferences
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -43,7 +44,6 @@ fun RunningView(
     token: String,
     history: List<HistoryStore.Entry>,
     historyRefreshTrigger: Int,
-    isAccessibilityEnabled: Boolean,
     drawerState: DrawerState,
     onStopService: () -> Unit,
     onOpenDrawer: () -> Unit,
@@ -123,9 +123,16 @@ fun RunningView(
                 token = token,
                 status = status,
                 error = error,
-                isAccessibilityEnabled = isAccessibilityEnabled,
                 drawerState = drawerState,
-                onStopService = { showStopDialog = true }
+                onStopService = { showStopDialog = true },
+                onShowHowToUse = {
+                    // Navigate to how to use screen
+                    val intent = Intent(ctx, com.corridor.MainActivity::class.java).apply {
+                        putExtra("SHOW_HOW_TO_USE", true)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+                    ctx.startActivity(intent)
+                }
             )
         },
         gesturesEnabled = true
@@ -134,9 +141,28 @@ fun RunningView(
             topBar = {
                 AppHeader(
                     status = status,
-                    isAccessibilityEnabled = isAccessibilityEnabled,
                     onMenuClick = onOpenDrawer,
-                    onStopClick = { showStopDialog = true }
+                    onStopClick = { showStopDialog = true },
+                    onReconnectClick = {
+                        // Trigger service restart to reconnect
+                        val token = Preferences.loadToken(ctx)
+                        val intent = android.content.Intent(ctx, ClipboardSyncService::class.java).apply {
+                            putExtra("TOKEN", token)
+                            putExtra("SILENT", Preferences.loadSilent(ctx))
+                            putExtra("NOTIFY_LOCAL", Preferences.loadNotifyLocal(ctx))
+                            putExtra("NOTIFY_REMOTE", Preferences.loadNotifyRemote(ctx))
+                            putExtra("NOTIFY_ERRORS", Preferences.loadNotifyErrors(ctx))
+                        }
+                        ctx.startForegroundService(intent)
+                    },
+                    onShowHowToUse = {
+                        // Navigate to how to use screen
+                        val intent = Intent(ctx, com.corridor.MainActivity::class.java).apply {
+                            putExtra("SHOW_HOW_TO_USE", true)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        }
+                        ctx.startActivity(intent)
+                    }
                 )
             }
         ) { paddingValues ->
@@ -149,9 +175,7 @@ fun RunningView(
             ) {
                 item {
                     Spacer(Modifier.height(4.dp))
-                    if (status in listOf("disconnected", "closed")) {
-                        StatusCard(status = status, error = error)
-                    } else if (error.isNotBlank()) {
+                    if (error.isNotBlank()) {
                         ErrorCard(error)
                     }
                 }
@@ -200,66 +224,6 @@ fun RunningView(
                     Spacer(Modifier.height(8.dp))
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun StatusCard(status: String, error: String) {
-    val ctx = LocalContext.current
-    var isReconnecting by remember { mutableStateOf(false) }
-
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f)
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Disconnected from server",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.weight(1f)
-            )
-            Button(
-                onClick = {
-                    isReconnecting = true
-                    val intent = Intent(ClipboardSyncService.ACTION_MANUAL_SYNC).apply {
-                        setPackage(ctx.packageName)
-                        putExtra("reconnect", true)
-                    }
-                    ctx.sendBroadcast(intent)
-                },
-                enabled = !isReconnecting,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
-                    disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
-                    disabledContentColor = MaterialTheme.colorScheme.onErrorContainer
-                ),
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    if (isReconnecting) "Reconnecting..." else "Reconnect",
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-    }
-
-    // Reset reconnecting state when status changes or after timeout
-    LaunchedEffect(status, isReconnecting) {
-        if (status !in listOf("disconnected", "closed") && isReconnecting) {
-            isReconnecting = false
-        }
-        if (isReconnecting) {
-            kotlinx.coroutines.delay(5000) // 5 seconds timeout
-            isReconnecting = false
         }
     }
 }

@@ -67,7 +67,7 @@ gradlew.bat assembleDebug  # Windows
 ./gradlew assembleDebug    # Linux/Mac
 ```
 
-Output: `app/build/outputs/apk/debug/app-debug.apk`
+Output: `app/build/outputs/apk/debug/Corridor-debug.apk`
 
 **Note**: Debug APKs show "Install from unknown sources" warning when shared, which is normal.
 
@@ -129,7 +129,7 @@ gradlew.bat assembleRelease  # Windows
 ./gradlew assembleRelease    # Linux/Mac
 ```
 
-Output: `app/build/outputs/apk/release/app-release.apk`
+Output: `app/build/outputs/apk/release/Corridor.apk`
 
 ### About "Unknown Sources" Warning
 
@@ -151,6 +151,6 @@ Alternatively, publish to **Google Play Store** for a trusted installation exper
 2. Share direct download link with users
 3. Optionally provide SHA256 checksum for verification:
    ```bash
-   certutil -hashfile app-release.apk SHA256  # Windows
-   sha256sum app-release.apk                   # Linux/Mac
+   certutil -hashfile Corridor.apk SHA256  # Windows
+   sha256sum Corridor.apk                   # Linux/Mac
    ```
