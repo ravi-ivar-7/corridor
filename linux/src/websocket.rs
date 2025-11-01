@@ -20,6 +20,7 @@ pub enum WsEvent {
     Disconnected,
     ClipboardUpdate(String),
     ClipboardHistory(Vec<HistoryData>),
+    ClearHistory,
     Error(String),
 }
 
@@ -74,6 +75,16 @@ impl WebSocketClient {
         let _ = tx.send(WsEvent::Connected);
 
         let (mut write, mut read) = ws_stream.split();
+
+        // Request history on connect
+        let request_history = json!({
+            "type": "request_history"
+        });
+        if let Err(e) = write.send(Message::Text(request_history.to_string())).await {
+            log::error!("Failed to request history: {}", e);
+        } else {
+            log::info!("Requested clipboard history from server");
+        }
 
         let mut ping_interval = interval(Duration::from_secs(30));
 
@@ -157,6 +168,10 @@ impl WebSocketClient {
                         let _ = tx.send(WsEvent::ClipboardHistory(history_items));
                     }
                 }
+            }
+            Some("clear_history") => {
+                log::info!("History cleared on server");
+                let _ = tx.send(WsEvent::ClearHistory);
             }
             Some("pong") => {
                 log::debug!("Received pong");

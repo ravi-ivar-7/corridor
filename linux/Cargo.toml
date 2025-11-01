@@ -35,6 +35,8 @@ thiserror = "2.0"
 chrono = "0.4"
 uuid = { version = "1.11", features = ["v4", "serde"] }
 futures-util = "0.3"
+base64 = "0.22"
+single-instance = "0.3"
 
 # System tray
 ksni = "0.2"

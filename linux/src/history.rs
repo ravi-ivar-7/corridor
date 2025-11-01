@@ -1,8 +1,7 @@
-use anyhow::{Context, Result};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use std::fs;
 use uuid::Uuid;
+use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HistoryItem {
@@ -11,6 +10,12 @@ pub struct HistoryItem {
     pub timestamp: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingSync {
+    pub content: String,
+    pub timestamp: i64,
 }
 
 impl HistoryItem {
@@ -37,34 +42,48 @@ impl HistoryItem {
 pub struct ClipboardHistory {
     items: Vec<HistoryItem>,
     max_items: usize,
+    pending_sync_queue: VecDeque<PendingSync>,
 }
 
 impl ClipboardHistory {
-    pub fn load(max_items: usize) -> Result<Self> {
-        let path = crate::config::Config::config_dir()?.join("history.json");
+    pub fn new(max_items: usize) -> Self {
+        Self {
+            items: Vec::new(),
+            max_items,
+            pending_sync_queue: VecDeque::new(),
+        }
+    }
 
-        let items = if path.exists() {
-            let content = fs::read_to_string(&path)
-                .with_context(|| format!("Failed to read history file: {:?}", path))?;
-            serde_json::from_str(&content)
-                .with_context(|| format!("Failed to parse history file: {:?}", path))?
-        } else {
-            Vec::new()
+    pub fn add_to_sync_queue(&mut self, content: String) {
+        let pending = PendingSync {
+            content,
+            timestamp: Utc::now().timestamp_millis(),
         };
+        self.pending_sync_queue.push_back(pending);
+        log::info!("Added to sync queue. Queue size: {}", self.pending_sync_queue.len());
+    }
 
-        Ok(Self { items, max_items })
+    pub fn get_pending_syncs(&mut self) -> Vec<PendingSync> {
+        let items: Vec<PendingSync> = self.pending_sync_queue.drain(..).collect();
+        log::info!("Retrieved {} pending syncs from queue", items.len());
+        items
+    }
+
+    pub fn has_pending_syncs(&self) -> bool {
+        !self.pending_sync_queue.is_empty()
+    }
+
+    pub fn pending_sync_count(&self) -> usize {
+        self.pending_sync_queue.len()
     }
 
     pub fn add(&mut self, item: HistoryItem) {
+        // Only add if it's different from the most recent item (don't duplicate consecutively)
         if self.items.is_empty() || self.items[0].content != item.content {
             self.items.insert(0, item);
 
             if self.items.len() > self.max_items {
                 self.items.truncate(self.max_items);
-            }
-
-            if let Err(e) = self.save() {
-                log::error!("Failed to save history: {}", e);
             }
         }
     }
@@ -86,17 +105,7 @@ impl ClipboardHistory {
         &self.items[..end]
     }
 
-    pub fn clear(&mut self) -> Result<()> {
+    pub fn clear(&mut self) {
         self.items.clear();
-        self.save()
-    }
-
-    fn save(&self) -> Result<()> {
-        let path = crate::config::Config::config_dir()?.join("history.json");
-        let json = serde_json::to_string_pretty(&self.items)
-            .context("Failed to serialize history")?;
-        fs::write(&path, json)
-            .with_context(|| format!("Failed to write history file: {:?}", path))?;
-        Ok(())
     }
 }

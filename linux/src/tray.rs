@@ -1,8 +1,8 @@
 use crate::history::ClipboardHistory;
-use chrono::DateTime;
 use ksni;
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc;
+use base64::{Engine as _, engine::general_purpose};
 
 pub struct TrayIcon {
     connected: Arc<Mutex<bool>>,
@@ -48,16 +48,67 @@ impl TrayIcon {
 
 impl ksni::Tray for TrayIcon {
     fn icon_name(&self) -> String {
-        // Using standard icon names as fallback
-        if *self.connected.lock().unwrap() {
-            "edit-copy".to_string()
-        } else {
-            "edit-copy".to_string()
-        }
+        String::new()
     }
 
     fn title(&self) -> String {
         "C".to_string()
+    }
+
+    fn icon_pixmap(&self) -> Vec<ksni::Icon> {
+        // Create a simple 22x22 icon with letter "C"
+        let size = 22;
+        let mut data = Vec::with_capacity((size * size * 4) as usize);
+
+        // Simple letter C pattern (white on transparent)
+        // Rows representing a "C" shape
+        let c_pattern = [
+            "     CCCCCCC     ",
+            "   CCCCCCCCCCC   ",
+            "  CCCCC   CCCCC  ",
+            " CCCC       CCCC ",
+            " CCC         CCC ",
+            "CCC           CCC",
+            "CCC              ",
+            "CCC              ",
+            "CCC              ",
+            "CCC              ",
+            "CCC              ",
+            "CCC              ",
+            "CCC              ",
+            "CCC           CCC",
+            " CCC         CCC ",
+            " CCCC       CCCC ",
+            "  CCCCC   CCCCC  ",
+            "   CCCCCCCCCCC   ",
+            "     CCCCCCC     ",
+        ];
+
+        for y in 0..size {
+            for x in 0..size {
+                let (r, g, b, a) = if y < 19 && x < 17 {
+                    let row = c_pattern.get(y as usize).unwrap_or(&"");
+                    if row.chars().nth(x as usize).unwrap_or(' ') == 'C' {
+                        (255u8, 255u8, 255u8, 255u8) // White
+                    } else {
+                        (0u8, 0u8, 0u8, 0u8) // Transparent
+                    }
+                } else {
+                    (0u8, 0u8, 0u8, 0u8) // Transparent
+                };
+
+                data.push(a);
+                data.push(r);
+                data.push(g);
+                data.push(b);
+            }
+        }
+
+        vec![ksni::Icon {
+            width: size,
+            height: size,
+            data,
+        }]
     }
 
     fn id(&self) -> String {
@@ -78,51 +129,81 @@ impl ksni::Tray for TrayIcon {
         let mut menu = vec![];
 
         // 1. Status (non-clickable)
+        let pending_count = history.pending_sync_count();
+        let status_label = if connected {
+            if pending_count > 0 {
+                format!("Status: ✓ Connected (Syncing {} items...)", pending_count)
+            } else {
+                "Status: ✓ Connected".to_string()
+            }
+        } else {
+            if pending_count > 0 {
+                format!("Status: ✗ Disconnected ({} pending)", pending_count)
+            } else {
+                "Status: ✗ Disconnected".to_string()
+            }
+        };
+
         menu.push(
             StandardItem {
-                label: format!(
-                    "Status: {}",
-                    if connected { "✓ Connected" } else { "✗ Disconnected" }
-                ),
+                label: status_label,
                 enabled: false,
                 ..Default::default()
             }
             .into(),
         );
 
-        // 2. Send to Server
+        // 2. Clipboard Broadcast
         menu.push(
             StandardItem {
-                label: "Send to Server...".to_string(),
+                label: "Clipboard Broadcast...".to_string(),
                 activate: Box::new(|tray: &mut TrayIcon| {
                     use std::process::Command;
-                    let output = Command::new("zenity")
-                        .args(&[
-                            "--text-info",
-                            "--editable",
-                            "--title=Send to Server",
-                            "--width=600",
-                            "--height=400"
-                        ])
-                        .output();
+                    use std::io::{BufRead, BufReader};
 
-                    if let Ok(result) = output {
-                        if result.status.success() {
-                            let text = String::from_utf8_lossy(&result.stdout).trim().to_string();
-                            if !text.is_empty() {
-                                if let Some(ws_tx) = &tray.ws_tx {
-                                    if let Ok(tx) = ws_tx.lock() {
-                                        let _ = tx.send(text.clone());
-                                        let _ = notify_rust::Notification::new()
-                                            .summary("Corridor")
-                                            .body("Text sent to server")
-                                            .timeout(2000)
-                                            .show();
+                    // Launch custom broadcast dialog
+                    let script_path = std::env::current_exe()
+                        .ok()
+                        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                        .map(|p| p.join("../../dialogs/broadcast_dialog.py"))
+                        .unwrap_or_else(|| std::path::PathBuf::from("dialogs/broadcast_dialog.py"));
+
+                    let ws_tx_clone = tray.ws_tx.clone();
+                    std::thread::spawn(move || {
+                        // Run dialog as a persistent process to read multiple outputs
+                        if let Ok(mut child) = Command::new("python3")
+                            .arg(&script_path)
+                            .stdout(std::process::Stdio::piped())
+                            .spawn()
+                        {
+                            if let Some(stdout) = child.stdout.take() {
+                                let reader = BufReader::new(stdout);
+                                for line in reader.lines() {
+                                    if let Ok(line_text) = line {
+                                        let line_text = line_text.trim();
+                                        // Check for SYNC: prefix with base64 encoded content
+                                        if line_text.starts_with("SYNC:") {
+                                            if let Some(encoded) = line_text.strip_prefix("SYNC:") {
+                                                // Decode base64 to get full text
+                                                if let Ok(decoded_bytes) = general_purpose::STANDARD.decode(encoded) {
+                                                    if let Ok(text) = String::from_utf8(decoded_bytes) {
+                                                        if !text.is_empty() {
+                                                            if let Some(ws_tx) = &ws_tx_clone {
+                                                                if let Ok(tx) = ws_tx.lock() {
+                                                                    let _ = tx.send(text);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
+                            let _ = child.wait();
                         }
-                    }
+                    });
                 }),
                 ..Default::default()
             }
@@ -153,7 +234,7 @@ impl ksni::Tray for TrayIcon {
                 let content_copy = item.content.clone();
                 menu.push(
                     StandardItem {
-                        label: format!("{} 🗐", preview),
+                        label: format!("🗐 {}", preview),
                         activate: Box::new(move |_tray: &mut TrayIcon| {
                             if let Ok(mut clipboard) = arboard::Clipboard::new() {
                                 let _ = clipboard.set_text(&content_copy);
@@ -178,7 +259,7 @@ impl ksni::Tray for TrayIcon {
         // History submenu (with chevron ⮞)
         menu.push(
             SubMenu {
-                label: "History ⮞".to_string(),
+                label: "Manage History".to_string(),
                 submenu: vec![
                         StandardItem {
                             label: "View Full History".to_string(),
@@ -192,8 +273,8 @@ impl ksni::Tray for TrayIcon {
                                     let script_path = std::env::current_exe()
                                         .ok()
                                         .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                                        .map(|p| p.join("../../show_history.py"))
-                                        .unwrap_or_else(|| std::path::PathBuf::from("show_history.py"));
+                                        .map(|p| p.join("../../dialogs/show_history.py"))
+                                        .unwrap_or_else(|| std::path::PathBuf::from("dialogs/show_history.py"));
 
                                     // Pass "fetch" as first arg to fetch from server
                                     let _ = Command::new("python3")
@@ -211,19 +292,16 @@ impl ksni::Tray for TrayIcon {
                             label: "Clear History".to_string(),
                             activate: Box::new(|tray: &mut TrayIcon| {
                                 use std::process::Command;
-                                let mut hist = tray.history.lock().unwrap();
-                                if hist.clear().is_ok() {
-                                    drop(hist);
-                                    let url = format!("{}/clipboard/{}", tray.http_url, tray.token);
-                                    std::thread::spawn(move || {
-                                        let _ = Command::new("curl").args(&["-X", "DELETE", &url]).output();
-                                    });
-                                    let _ = notify_rust::Notification::new()
-                                        .summary("Corridor")
-                                        .body("History cleared")
-                                        .timeout(2000)
-                                        .show();
-                                }
+                                // Clear on server - server will broadcast clear_history to all clients
+                                let url = format!("{}/clipboard/{}", tray.http_url, tray.token);
+                                std::thread::spawn(move || {
+                                    let _ = Command::new("curl").args(&["-X", "DELETE", &url]).output();
+                                });
+                                let _ = notify_rust::Notification::new()
+                                    .summary("Corridor")
+                                    .body("Clearing history...")
+                                    .timeout(2000)
+                                    .show();
                             }),
                             ..Default::default()
                         }
@@ -239,7 +317,7 @@ impl ksni::Tray for TrayIcon {
         // 4. Application submenu (with chevron ⮞)
         menu.push(
             SubMenu {
-                label: "Application ⮞".to_string(),
+                label: "App Menu".to_string(),
                 submenu: vec![
                     StandardItem {
                         label: "Settings".to_string(),
@@ -256,18 +334,18 @@ impl ksni::Tray for TrayIcon {
                         label: "Help".to_string(),
                         activate: Box::new(|_tray: &mut TrayIcon| {
                             use std::process::Command;
-                            let _ = Command::new("zenity")
-                                .args(&[
-                                    "--info",
-                                    "--title=Help",
-                                    "--text=<b>Corridor Clipboard Sync</b>\n\n\
-                                    • Copy text to sync across devices\n\
-                                    • Click history items to copy\n\
-                                    • Send to Server for manual push\n\n\
-                                    Visit: https://corridor.rknain.com",
-                                    "--width=400",
-                                ])
-                                .spawn();
+
+                            let script_path = std::env::current_exe()
+                                .ok()
+                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                                .map(|p| p.join("../../dialogs/help_dialog.py"))
+                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/help_dialog.py"));
+
+                            std::thread::spawn(move || {
+                                let _ = Command::new("python3")
+                                    .arg(&script_path)
+                                    .spawn();
+                            });
                         }),
                         ..Default::default()
                     }
@@ -276,17 +354,18 @@ impl ksni::Tray for TrayIcon {
                         label: "About".to_string(),
                         activate: Box::new(|_tray: &mut TrayIcon| {
                             use std::process::Command;
-                            let _ = Command::new("zenity")
-                                .args(&[
-                                    "--info",
-                                    "--title=About",
-                                    "--text=<b>Corridor Clipboard Sync</b>\nVersion 1.0.0\n\n\
-                                    Real-time clipboard sync\n\
-                                    Built with Rust\n\n\
-                                    © 2024 Ravi Kumar",
-                                    "--width=400",
-                                ])
-                                .spawn();
+
+                            let script_path = std::env::current_exe()
+                                .ok()
+                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                                .map(|p| p.join("../../dialogs/about_dialog.py"))
+                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/about_dialog.py"));
+
+                            std::thread::spawn(move || {
+                                let _ = Command::new("python3")
+                                    .arg(&script_path)
+                                    .spawn();
+                            });
                         }),
                         ..Default::default()
                     }
