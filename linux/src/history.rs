@@ -69,10 +69,6 @@ impl ClipboardHistory {
         items
     }
 
-    pub fn has_pending_syncs(&self) -> bool {
-        !self.pending_sync_queue.is_empty()
-    }
-
     pub fn pending_sync_count(&self) -> usize {
         self.pending_sync_queue.len()
     }
@@ -94,10 +90,6 @@ impl ClipboardHistory {
 
     pub fn add_remote(&mut self, id: String, content: String, timestamp: i64) {
         self.add(HistoryItem::from_remote(id, content, timestamp));
-    }
-
-    pub fn get_all(&self) -> &[HistoryItem] {
-        &self.items
     }
 
     pub fn get_recent(&self, count: usize) -> &[HistoryItem] {

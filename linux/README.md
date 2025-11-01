@@ -1,186 +1,101 @@
-# Corridor - Rust Edition
+# Corridor - Linux
 
-Production-ready clipboard synchronization for Linux. Fast, lightweight, and reliable.
+Real-time clipboard synchronization for Linux.
 
 ## Features
 
-✅ **Event-based clipboard monitoring** - Instant detection (<10ms latency)
-✅ **Real-time WebSocket sync** - Synchronized across all devices
-✅ **System tray integration** - Quick access and status
-✅ **Clipboard history** - Last 100 items saved
-✅ **Desktop notifications** - Configurable alerts
-✅ **Auto-reconnect** - Resilient connection handling
-✅ **Single binary** - No runtime dependencies
-✅ **Tiny footprint** - ~5MB binary, <15MB RAM
+- Real-time WebSocket sync across devices
+- System tray with history (100 items)
+- Desktop notifications
+- Auto-reconnect with offline queue
+- Single instance check with dialog
+- Setup wizard on first run
+- ~3MB binary, <15MB RAM
 
 ## Installation
 
+### Download Binary
+Get the latest release from [corridor.rknain.com/downloads](https://corridor.rknain.com/downloads)
+
 ### Build from Source
-
 ```bash
-# Build release binary
+./build.sh  # Builds and copies to server/web/public/Corridor
+```
+
+Or manually:
+```bash
 cargo build --release
-
-# Binary location
 ./target/release/corridor
-
-# Optional: Install system-wide
-sudo cp target/release/corridor /usr/local/bin/
 ```
 
-### First Run
+## First Run
 
-Create config file at `~/.config/corridor/config.json`:
+On first launch, a setup dialog appears:
+- Enter your sync token
+- Choose mode (interactive/silent)
+- Configure auto-start
 
-```json
-{
-  "token": "your-room-token",
-  "websocket_url": "wss://corridor-worker.corridor-sync.workers.dev/ws",
-  "http_url": "https://corridor-worker.corridor-sync.workers.dev/api",
-  "mode": "interactive",
-  "auto_start": true,
-  "notifications": {
-    "local_copy": false,
-    "remote_update": true,
-    "errors": true
-  },
-  "clipboard": {
-    "history_size": 100
-  }
-}
-```
+Config is saved to `~/.config/corridor/config.json`
 
 ## Usage
 
-```bash
-# Run corridor
-./corridor
+The app runs with a system tray icon showing connection status:
+- **White icon (✓)**: Connected
+- **Red icon (✗)**: Disconnected
 
-# Run in silent mode (edit config.json: mode: "silent")
-./corridor
+### Tray Menu
+- **History**: View and restore recent clipboard items
+- **Clear History**: Clear local and server history
+- **Settings**: Open config file
+- **Restart**: Restart the app
+- **Quit**: Exit
 
-# View logs
-RUST_LOG=debug ./corridor
-```
-
-## System Tray
-
-Right-click the tray icon for:
-- Connection status
-- Recent clipboard items (click to copy)
-- View full history
-- Clear history
-- Quit
-
-## Configuration
-
-### Config File Location
-`~/.config/corridor/config.json`
-
-### History File Location
-`~/.config/corridor/history.json`
-
-### Available Modes
-- `interactive`: System tray + notifications
+### Modes
+- `interactive`: System tray + notifications (default)
 - `silent`: Background only, no UI
 
 ## Auto-Start
 
-Create systemd user service:
+Configured via the setup dialog. Creates `~/.config/autostart/corridor.desktop`
 
+Manual setup:
 ```bash
-mkdir -p ~/.config/systemd/user
-
-cat > ~/.config/systemd/user/corridor.service <<EOF
-[Unit]
-Description=Corridor Clipboard Sync
-After=network-online.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/corridor
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=default.target
+mkdir -p ~/.config/autostart
+cat > ~/.config/autostart/corridor.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=Corridor
+Exec=/usr/local/bin/corridor --autostart
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
 EOF
-
-# Enable and start
-systemctl --user enable corridor.service
-systemctl --user start corridor.service
-
-# Check status
-systemctl --user status corridor.service
 ```
 
-## Architecture
+## Requirements
 
-```
-corridor/
-├── src/
-│   ├── main.rs          # Application entry point
-│   ├── config.rs        # Configuration management
-│   ├── history.rs       # Clipboard history storage
-│   ├── clipboard.rs     # Event-based clipboard monitoring
-│   ├── websocket.rs     # WebSocket client with auto-reconnect
-│   └── tray.rs          # System tray integration
-├── Cargo.toml           # Dependencies
-└── README.md
-```
+- X11 or Wayland
+- System tray support (GNOME: install `gnome-shell-extension-appindicator`)
+- Python 3 + tkinter (for setup dialogs)
 
-## Performance
+## Compatibility
 
-| Metric | Value |
-|--------|-------|
-| Binary Size | ~5MB |
-| Memory Usage | 10-15MB |
-| Startup Time | <100ms |
-| Clipboard Latency | <10ms (event-based) |
-| CPU Usage (idle) | <0.1% |
-
-## Comparison with Python Version
-
-| Feature | Python | Rust |
-|---------|--------|------|
-| Binary Size | 100-200MB | 5MB |
-| Memory | 50-100MB | 10-15MB |
-| Clipboard Detection | Polling (500ms) | Events (<10ms) |
-| Dependencies | Python + pip packages | None |
-| Startup | 2-3s | <100ms |
-| Distribution | Complex | Single file |
+Works on modern Linux distributions with glibc 2.31+ and libssl.so.3:
+- Ubuntu 20.04+
+- Debian 11+
+- Fedora 35+
+- Linux Mint 20+
 
 ## Troubleshooting
 
-### Clipboard not working
-The app uses `arboard` which requires X11 or Wayland. Ensure you're running a display server.
-
-### System tray not showing
-Install a system tray provider:
+**Setup dialog not appearing**: Install `python3-tk`
 ```bash
-# GNOME
+sudo apt install python3-tk
+```
+
+**Tray icon missing**: Install system tray extension
+```bash
 sudo apt install gnome-shell-extension-appindicator
-
-# KDE - built-in
-
-# Other DE - check documentation
 ```
 
-### Connection issues
-Check logs:
-```bash
-RUST_LOG=debug ./corridor
-```
-
-## License
-
-MIT
-
-## Credits
-
-Built with:
-- [arboard](https://github.com/1Password/arboard) - Clipboard access
-- [clipboard-master](https://github.com/DoumanAsh/clipboard-master) - Clipboard events
-- [tokio](https://tokio.rs/) - Async runtime
-- [ksni](https://github.com/iovxw/ksni) - System tray
-- [notify-rust](https://github.com/hoodie/notify-rust) - Desktop notifications
+**Connection errors**: Check logs with `RUST_LOG=debug ./corridor`

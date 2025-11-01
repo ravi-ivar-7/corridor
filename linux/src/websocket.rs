@@ -78,7 +78,7 @@ impl WebSocketClient {
 
         // Request history on connect
         let request_history = json!({
-            "type": "request_history"
+            "type": "clipboard_history"
         });
         if let Err(e) = write.send(Message::Text(request_history.to_string())).await {
             log::error!("Failed to request history: {}", e);
@@ -86,13 +86,24 @@ impl WebSocketClient {
             log::info!("Requested clipboard history from server");
         }
 
-        let mut ping_interval = interval(Duration::from_secs(30));
+        // Use 5-second ping interval for faster disconnection detection
+        let mut ping_interval = interval(Duration::from_secs(5));
+        // If we don't get any response (pong or any message) within 10 seconds, disconnect
+        let mut last_response = tokio::time::Instant::now();
+        let connection_timeout = Duration::from_secs(10);
 
         loop {
+            // Check if connection is dead (no response in 10 seconds)
+            if last_response.elapsed() > connection_timeout {
+                log::error!("Connection timeout - no response in {:?}", connection_timeout);
+                break;
+            }
+
             tokio::select! {
                 msg = read.next() => {
                     match msg {
                         Some(Ok(Message::Text(text))) => {
+                            last_response = tokio::time::Instant::now();
                             self.handle_message(&text, tx)?;
                         }
                         Some(Ok(Message::Close(_))) => {
@@ -100,10 +111,12 @@ impl WebSocketClient {
                             break;
                         }
                         Some(Ok(Message::Ping(_))) => {
+                            last_response = tokio::time::Instant::now();
                             log::debug!("Received ping");
                         }
                         Some(Ok(Message::Pong(_))) => {
-                            log::debug!("Received pong");
+                            last_response = tokio::time::Instant::now();
+                            log::debug!("Received pong - connection alive");
                         }
                         Some(Err(e)) => {
                             log::error!("WebSocket read error: {}", e);
@@ -136,11 +149,15 @@ impl WebSocketClient {
                 }
 
                 _ = ping_interval.tick() => {
-                    log::debug!("Sending ping");
+                    log::debug!("Sending ping to check connection");
                     if let Err(e) = write.send(Message::Ping(vec![])).await {
                         log::error!("Failed to send ping: {}", e);
                         break;
                     }
+                }
+
+                _ = tokio::time::sleep(Duration::from_millis(100)) => {
+                    // Small sleep to check timeout regularly without busy-waiting
                 }
             }
         }

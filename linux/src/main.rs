@@ -157,7 +157,7 @@ async fn main() -> Result<()> {
             .await
     });
 
-    let tray_connected = if matches!(config.mode, AppMode::Interactive) {
+    let (tray_connected, tray_handle) = if matches!(config.mode, AppMode::Interactive) {
         let tray = TrayIcon::new(
             history.clone(),
             Some(clipboard_to_ws_tx.clone()),
@@ -165,10 +165,10 @@ async fn main() -> Result<()> {
             config.token.clone(),
         );
         let connected_handle = tray.get_connected_handle();
-        tray.spawn();
-        Some(connected_handle)
+        let handle = tray.spawn();
+        (Some(connected_handle), Some(handle))
     } else {
-        None
+        (None, None)
     };
 
     let clipboard_manager_for_remote = ClipboardManager::new()?;
@@ -204,6 +204,15 @@ async fn main() -> Result<()> {
                                 history.lock().unwrap().add_to_sync_queue(content.clone());
                             }
 
+                            // Always trigger immediate tray update when history changes
+                            if let Some(ref handle) = tray_handle {
+                                handle.update(|tray| {
+                                    if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                        *counter = counter.wrapping_add(1);
+                                    }
+                                });
+                            }
+
                             if config.notifications.local_copy {
                                 notify("Copied", &format!("{}", &content.chars().take(50).collect::<String>()));
                             }
@@ -226,6 +235,15 @@ async fn main() -> Result<()> {
                         log::info!("✓ WebSocket connected");
                         if let Some(ref tray_conn) = tray_connected {
                             *tray_conn.lock().unwrap() = true;
+                        }
+
+                        // Trigger immediate tray update
+                        if let Some(ref handle) = tray_handle {
+                            handle.update(|tray| {
+                                if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                    *counter = counter.wrapping_add(1);
+                                }
+                            });
                         }
 
                         // Sync pending items from queue
@@ -253,6 +271,15 @@ async fn main() -> Result<()> {
                                 }
                             }
                             notify("Corridor", &format!("Synced {} queued clipboard items", count));
+
+                            // Trigger immediate tray update to show pending count cleared
+                            if let Some(ref handle) = tray_handle {
+                                handle.update(|tray| {
+                                    if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                        *counter = counter.wrapping_add(1);
+                                    }
+                                });
+                            }
                         }
 
                         if config.notifications.remote_update {
@@ -264,6 +291,16 @@ async fn main() -> Result<()> {
                         if let Some(ref tray_conn) = tray_connected {
                             *tray_conn.lock().unwrap() = false;
                         }
+
+                        // Trigger immediate tray update
+                        if let Some(ref handle) = tray_handle {
+                            handle.update(|tray| {
+                                if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                    *counter = counter.wrapping_add(1);
+                                }
+                            });
+                        }
+
                         if config.notifications.errors {
                             notify("Corridor", "Disconnected from sync server");
                         }
@@ -289,6 +326,15 @@ async fn main() -> Result<()> {
                                 );
                                 log::info!("✓ Updated local clipboard from remote");
 
+                                // Trigger immediate tray update to show new history item
+                                if let Some(ref handle) = tray_handle {
+                                    handle.update(|tray| {
+                                        if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                            *counter = counter.wrapping_add(1);
+                                        }
+                                    });
+                                }
+
                                 if notify_enabled {
                                     notify("Remote Clipboard", &format!("{}", &content.chars().take(50).collect::<String>()));
                                 }
@@ -305,13 +351,34 @@ async fn main() -> Result<()> {
                         for item in items {
                             hist.add_remote(item.id, item.content, item.timestamp);
                         }
+                        drop(hist); // Release the lock before updating tray
                         log::info!("✓ Local history synced with server");
+
+                        // Trigger immediate tray update to show new history
+                        if let Some(ref handle) = tray_handle {
+                            handle.update(|tray| {
+                                if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                    *counter = counter.wrapping_add(1);
+                                }
+                            });
+                        }
                     }
                     WsEvent::ClearHistory => {
                         log::info!("Clearing local history (server cleared)");
                         let mut hist = history.lock().unwrap();
                         hist.clear();
+                        drop(hist); // Release the lock before updating tray
                         log::info!("✓ Local history cleared");
+
+                        // Trigger immediate tray update to show cleared history
+                        if let Some(ref handle) = tray_handle {
+                            handle.update(|tray| {
+                                if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                    *counter = counter.wrapping_add(1);
+                                }
+                            });
+                        }
+
                         if config.notifications.remote_update {
                             notify("Corridor", "History cleared");
                         }

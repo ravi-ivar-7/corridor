@@ -10,6 +10,7 @@ pub struct TrayIcon {
     ws_tx: Option<Arc<Mutex<mpsc::UnboundedSender<String>>>>,
     http_url: String,
     token: String,
+    pub refresh_counter: Arc<Mutex<u64>>, // Force menu rebuild
 }
 
 impl TrayIcon {
@@ -25,6 +26,7 @@ impl TrayIcon {
             ws_tx: ws_tx.map(|tx| Arc::new(Mutex::new(tx))),
             http_url,
             token,
+            refresh_counter: Arc::new(Mutex::new(0)),
         }
     }
 
@@ -32,17 +34,26 @@ impl TrayIcon {
         self.connected.clone()
     }
 
-    pub fn spawn(self) {
-        std::thread::spawn(move || {
-            let service = ksni::TrayService::new(self);
-            let handle = service.handle();
-            service.spawn();
+    pub fn spawn(self) -> ksni::Handle<Self> {
+        let service = ksni::TrayService::new(self);
+        let handle = service.handle();
+        service.spawn();
 
+        // Spawn background thread for periodic updates (fallback)
+        let handle_clone = handle.clone();
+        std::thread::spawn(move || {
             loop {
                 std::thread::sleep(std::time::Duration::from_secs(1));
-                handle.update(|_tray: &mut TrayIcon| {});
+                handle_clone.update(|tray: &mut TrayIcon| {
+                    // Increment counter to force menu rebuild
+                    if let Ok(mut counter) = tray.refresh_counter.lock() {
+                        *counter = counter.wrapping_add(1);
+                    }
+                });
             }
         });
+
+        handle
     }
 }
 
@@ -52,15 +63,29 @@ impl ksni::Tray for TrayIcon {
     }
 
     fn title(&self) -> String {
-        "C".to_string()
+        let connected = *self.connected.lock().unwrap_or_else(|e| e.into_inner());
+        if connected {
+            "Corridor ✓".to_string()
+        } else {
+            "Corridor ✗".to_string()
+        }
     }
 
     fn icon_pixmap(&self) -> Vec<ksni::Icon> {
         // Create a simple 22x22 icon with letter "C"
+        // Color changes based on connection status: green=connected, red=disconnected
         let size = 22;
         let mut data = Vec::with_capacity((size * size * 4) as usize);
 
-        // Simple letter C pattern (white on transparent)
+        // Check connection status
+        let connected = *self.connected.lock().unwrap_or_else(|e| e.into_inner());
+        let (icon_r, icon_g, icon_b) = if connected {
+            (255u8, 255u8, 255u8) // White (default) when connected
+        } else {
+            (255u8, 100u8, 100u8) // Red when disconnected
+        };
+
+        // Simple letter C pattern
         // Rows representing a "C" shape
         let c_pattern = [
             "     CCCCCCC     ",
@@ -89,7 +114,7 @@ impl ksni::Tray for TrayIcon {
                 let (r, g, b, a) = if y < 19 && x < 17 {
                     let row = c_pattern.get(y as usize).unwrap_or(&"");
                     if row.chars().nth(x as usize).unwrap_or(' ') == 'C' {
-                        (255u8, 255u8, 255u8, 255u8) // White
+                        (icon_r, icon_g, icon_b, 255u8) // Icon color based on connection
                     } else {
                         (0u8, 0u8, 0u8, 0u8) // Transparent
                     }
@@ -169,6 +194,8 @@ impl ksni::Tray for TrayIcon {
                         .unwrap_or_else(|| std::path::PathBuf::from("dialogs/broadcast_dialog.py"));
 
                     let ws_tx_clone = tray.ws_tx.clone();
+                    let history_clone = tray.history.clone();
+                    let refresh_counter_clone = tray.refresh_counter.clone();
                     std::thread::spawn(move || {
                         // Run dialog as a persistent process to read multiple outputs
                         if let Ok(mut child) = Command::new("python3")
@@ -188,10 +215,21 @@ impl ksni::Tray for TrayIcon {
                                                 if let Ok(decoded_bytes) = general_purpose::STANDARD.decode(encoded) {
                                                     if let Ok(text) = String::from_utf8(decoded_bytes) {
                                                         if !text.is_empty() {
+                                                            // Add to local history
+                                                            if let Ok(mut hist) = history_clone.lock() {
+                                                                hist.add_local(text.clone());
+                                                            }
+
+                                                            // Send to WebSocket
                                                             if let Some(ws_tx) = &ws_tx_clone {
                                                                 if let Ok(tx) = ws_tx.lock() {
                                                                     let _ = tx.send(text);
                                                                 }
+                                                            }
+
+                                                            // Force tray refresh (increment counter in background)
+                                                            if let Ok(mut counter) = refresh_counter_clone.lock() {
+                                                                *counter = counter.wrapping_add(1);
                                                             }
                                                         }
                                                     }
@@ -297,8 +335,8 @@ impl ksni::Tray for TrayIcon {
 
         if !recent_items.is_empty() {
             for item in recent_items {
-                let single_line = item.content.lines().next().unwrap_or("").chars().take(50).collect::<String>();
-                let preview = if item.content.len() > 50 || item.content.contains('\n') {
+                let single_line = item.content.lines().next().unwrap_or("").chars().take(80).collect::<String>();
+                let preview = if item.content.len() > 80 || item.content.contains('\n') {
                     format!("{}...", single_line)
                 } else {
                     single_line
@@ -365,14 +403,26 @@ impl ksni::Tray for TrayIcon {
                             label: "Clear History".to_string(),
                             activate: Box::new(|tray: &mut TrayIcon| {
                                 use std::process::Command;
+
+                                // Clear local history immediately
+                                if let Ok(mut hist) = tray.history.lock() {
+                                    hist.clear();
+                                }
+
+                                // Force tray refresh immediately
+                                if let Ok(mut counter) = tray.refresh_counter.lock() {
+                                    *counter = counter.wrapping_add(1);
+                                }
+
                                 // Clear on server - server will broadcast clear_history to all clients
                                 let url = format!("{}/clipboard/{}", tray.http_url, tray.token);
                                 std::thread::spawn(move || {
                                     let _ = Command::new("curl").args(&["-X", "DELETE", &url]).output();
                                 });
+
                                 let _ = notify_rust::Notification::new()
                                     .summary("Corridor")
-                                    .body("Clearing history...")
+                                    .body("History cleared")
                                     .timeout(2000)
                                     .show();
                             }),
