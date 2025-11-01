@@ -47,3 +47,8 @@ android/*.aab
 !server/web/public/Corridor.apk
 
 .claude/
+
+# Linux specific
+linux/build
+linux/publish
+linux/target

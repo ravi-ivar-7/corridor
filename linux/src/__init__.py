@@ -1,1 +1,0 @@
-# Corridor Linux Client
