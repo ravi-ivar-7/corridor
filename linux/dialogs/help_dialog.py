@@ -12,34 +12,13 @@ except ImportError:
 class HelpDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Corridor Help")
-        self.set_default_size(550, 380)
+        self.set_default_size(550, 600)
         self.set_border_width(0)
         self.set_resizable(False)
 
         # Main container
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(main_box)
-
-        # Header
-        header = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-        header.set_margin_top(15)
-        header.set_margin_bottom(10)
-
-        # App name
-        app_name = Gtk.Label()
-        app_name.set_markup("<span size='20000' weight='bold'>Corridor</span>")
-        header.pack_start(app_name, False, False, 0)
-
-        # Tagline
-        tagline = Gtk.Label()
-        tagline.set_markup("<span size='10000' foreground='#666666'>Help & Resources</span>")
-        header.pack_start(tagline, False, False, 0)
-
-        main_box.pack_start(header, False, False, 0)
-
-        # Separator after header
-        header_sep = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        main_box.pack_start(header_sep, False, False, 0)
 
         # Content area
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=15)

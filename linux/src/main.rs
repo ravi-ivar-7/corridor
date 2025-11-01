@@ -19,6 +19,38 @@ async fn main() -> Result<()> {
 
     log::info!("Starting Corridor Linux Client v1.0.0");
 
+    // Check if started with --autostart flag (from autostart or setup dialog)
+    let args: Vec<String> = std::env::args().collect();
+    let is_autostart = args.contains(&"--autostart".to_string());
+
+    // If not autostart, show setup dialog
+    if !is_autostart {
+        use std::process::Command;
+
+        log::info!("Manual start detected, showing setup dialog");
+
+        let script_path = std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+            .map(|p| p.join("../../dialogs/setup_dialog.py"))
+            .unwrap_or_else(|| std::path::PathBuf::from("dialogs/setup_dialog.py"));
+
+        let status = Command::new("python3")
+            .arg(&script_path)
+            .status()
+            .context("Failed to start setup dialog")?;
+
+        // Check exit code - 0 means "Save and Start", non-zero means cancelled
+        if !status.success() {
+            log::info!("Setup dialog cancelled by user (exit code: {:?})", status.code());
+            return Ok(());
+        }
+
+        log::info!("Setup dialog completed with success, continuing to start Corridor");
+    } else {
+        log::info!("Starting with --autostart flag, skipping setup dialog");
+    }
+
     // Check for single instance
     let instance = single_instance::SingleInstance::new("corridor-clipboard-sync")
         .context("Failed to create single instance lock")?;

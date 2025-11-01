@@ -12,7 +12,7 @@ except ImportError:
 class BroadcastDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Add to Clipboard")
-        self.set_default_size(800, 300)
+        self.set_default_size(800, 550)
         self.set_border_width(15)
         self.result_text = None
 

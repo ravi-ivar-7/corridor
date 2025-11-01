@@ -212,7 +212,80 @@ impl ksni::Tray for TrayIcon {
 
         menu.push(MenuItem::Separator);
 
-        // 3. Recent Clipboard
+        // 3. Application submenu
+        menu.push(
+            SubMenu {
+                label: "App Menu".to_string(),
+                submenu: vec![
+                    StandardItem {
+                        label: "Settings".to_string(),
+                        activate: Box::new(|_tray: &mut TrayIcon| {
+                            use std::process::Command;
+
+                            let script_path = std::env::current_exe()
+                                .ok()
+                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                                .map(|p| p.join("../../dialogs/settings_dialog.py"))
+                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/settings_dialog.py"));
+
+                            std::thread::spawn(move || {
+                                let _ = Command::new("python3")
+                                    .arg(&script_path)
+                                    .spawn();
+                            });
+                        }),
+                        ..Default::default()
+                    }
+                    .into(),
+                    StandardItem {
+                        label: "Help".to_string(),
+                        activate: Box::new(|_tray: &mut TrayIcon| {
+                            use std::process::Command;
+
+                            let script_path = std::env::current_exe()
+                                .ok()
+                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                                .map(|p| p.join("../../dialogs/help_dialog.py"))
+                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/help_dialog.py"));
+
+                            std::thread::spawn(move || {
+                                let _ = Command::new("python3")
+                                    .arg(&script_path)
+                                    .spawn();
+                            });
+                        }),
+                        ..Default::default()
+                    }
+                    .into(),
+                    StandardItem {
+                        label: "About".to_string(),
+                        activate: Box::new(|_tray: &mut TrayIcon| {
+                            use std::process::Command;
+
+                            let script_path = std::env::current_exe()
+                                .ok()
+                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                                .map(|p| p.join("../../dialogs/about_dialog.py"))
+                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/about_dialog.py"));
+
+                            std::thread::spawn(move || {
+                                let _ = Command::new("python3")
+                                    .arg(&script_path)
+                                    .spawn();
+                            });
+                        }),
+                        ..Default::default()
+                    }
+                    .into(),
+                ],
+                ..Default::default()
+            }
+            .into(),
+        );
+
+        menu.push(MenuItem::Separator);
+
+        // 4. Recent Clipboard
         menu.push(
             StandardItem {
                 label: "Recent Clipboard:".to_string(),
@@ -313,68 +386,6 @@ impl ksni::Tray for TrayIcon {
             );
 
         menu.push(MenuItem::Separator);
-
-        // 4. Application submenu (with chevron ⮞)
-        menu.push(
-            SubMenu {
-                label: "App Menu".to_string(),
-                submenu: vec![
-                    StandardItem {
-                        label: "Settings".to_string(),
-                        activate: Box::new(|_tray: &mut TrayIcon| {
-                            use std::process::Command;
-                            let _ = Command::new("zenity")
-                                .args(&["--info", "--title=Settings", "--text=Please edit:\n~/.config/corridor/config.json", "--width=400"])
-                                .spawn();
-                        }),
-                        ..Default::default()
-                    }
-                    .into(),
-                    StandardItem {
-                        label: "Help".to_string(),
-                        activate: Box::new(|_tray: &mut TrayIcon| {
-                            use std::process::Command;
-
-                            let script_path = std::env::current_exe()
-                                .ok()
-                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                                .map(|p| p.join("../../dialogs/help_dialog.py"))
-                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/help_dialog.py"));
-
-                            std::thread::spawn(move || {
-                                let _ = Command::new("python3")
-                                    .arg(&script_path)
-                                    .spawn();
-                            });
-                        }),
-                        ..Default::default()
-                    }
-                    .into(),
-                    StandardItem {
-                        label: "About".to_string(),
-                        activate: Box::new(|_tray: &mut TrayIcon| {
-                            use std::process::Command;
-
-                            let script_path = std::env::current_exe()
-                                .ok()
-                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                                .map(|p| p.join("../../dialogs/about_dialog.py"))
-                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/about_dialog.py"));
-
-                            std::thread::spawn(move || {
-                                let _ = Command::new("python3")
-                                    .arg(&script_path)
-                                    .spawn();
-                            });
-                        }),
-                        ..Default::default()
-                    }
-                    .into(),
-                ],
-                ..Default::default()
-            }
-            .into(),
-        );
 
         // 5. Quit
         menu.push(

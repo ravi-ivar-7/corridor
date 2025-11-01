@@ -12,34 +12,13 @@ except ImportError:
 class AboutDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="About Corridor")
-        self.set_default_size(550, 450)
+        self.set_default_size(550, 600)
         self.set_border_width(0)
         self.set_resizable(False)
 
         # Main container
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(main_box)
-
-        # Header with simple background
-        header = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-        header.set_margin_top(15)
-        header.set_margin_bottom(10)
-
-        # App name
-        app_name = Gtk.Label()
-        app_name.set_markup("<span size='20000' weight='bold'>Corridor</span>")
-        header.pack_start(app_name, False, False, 0)
-
-        # Tagline
-        tagline = Gtk.Label()
-        tagline.set_markup("<span size='10000' foreground='#666666'>Real-time Cross-Device Clipboard Synchronization</span>")
-        header.pack_start(tagline, False, False, 0)
-
-        main_box.pack_start(header, False, False, 0)
-
-        # Separator after header
-        header_sep = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        main_box.pack_start(header_sep, False, False, 0)
 
         # Content area
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=15)
@@ -93,8 +72,7 @@ class AboutDialog(Gtk.Window):
         # Copyright
         copyright_label = Gtk.Label()
         copyright_label.set_markup(
-            "<b>Copyright:</b> © 2024 Ravi Kumar\n"
-            "<b>License:</b> MIT"
+            "<b>Copyright:</b> © 2025 Corridor\n"
         )
         copyright_label.set_halign(Gtk.Align.START)
         copyright_label.set_xalign(0)
@@ -113,39 +91,30 @@ class AboutDialog(Gtk.Window):
         button_box.set_margin_start(40)
         button_box.set_margin_end(40)
 
+        # Learn More button
+        learn_more_btn = Gtk.Button(label="Learn More")
+        learn_more_btn.connect("clicked", self.on_learn_more_clicked)
+        button_box.pack_start(learn_more_btn, True, True, 0)
+
         # Website button
-        website_btn = Gtk.Button(label="🌐 Website")
+        website_btn = Gtk.Button(label="Website")
         website_btn.connect("clicked", self.on_website_clicked)
         button_box.pack_start(website_btn, True, True, 0)
-
-        # GitHub button
-        github_btn = Gtk.Button(label="💻 GitHub")
-        github_btn.connect("clicked", self.on_github_clicked)
-        button_box.pack_start(github_btn, True, True, 0)
-
-        # Documentation button
-        docs_btn = Gtk.Button(label="📖 Docs")
-        docs_btn.connect("clicked", self.on_docs_clicked)
-        button_box.pack_start(docs_btn, True, True, 0)
 
         # Close button
         close_btn = Gtk.Button(label="Close")
         close_btn.connect("clicked", self.on_close_clicked)
-        button_box.pack_end(close_btn, False, False, 0)
+        button_box.pack_start(close_btn, True, True, 0)
 
         main_box.pack_start(button_box, False, False, 0)
+
+    def on_learn_more_clicked(self, button):
+        import subprocess
+        subprocess.Popen(["xdg-open", "https://corridor.rknain.com/about"])
 
     def on_website_clicked(self, button):
         import subprocess
         subprocess.Popen(["xdg-open", "https://corridor.rknain.com"])
-
-    def on_github_clicked(self, button):
-        import subprocess
-        subprocess.Popen(["xdg-open", "https://github.com/ravikumar-ravi/corridor"])
-
-    def on_docs_clicked(self, button):
-        import subprocess
-        subprocess.Popen(["xdg-open", "https://corridor.rknain.com/docs"])
 
     def on_close_clicked(self, button):
         Gtk.main_quit()
