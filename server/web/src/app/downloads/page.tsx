@@ -178,7 +178,7 @@ export default function DownloadsPage() {
                 </p>
               </div>
               <p className="text-xs text-slate-500 mt-2">
-                Manual: Download → <code className="bg-slate-100 px-1 rounded text-[11px]">chmod +x Corridor</code> → Run
+                Manual: Download → <code className="bg-slate-100 px-1 rounded text-[11px]">chmod +x</code> → Double-click to run
               </p>
             </div>
 

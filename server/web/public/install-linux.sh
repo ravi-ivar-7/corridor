@@ -8,9 +8,17 @@ echo "Corridor Linux Installer"
 echo "============================"
 echo
 
-# Detect installation directory
-INSTALL_DIR="$HOME/.local/bin"
-mkdir -p "$INSTALL_DIR"
+# Detect Downloads folder
+if [ -d "$HOME/Downloads" ]; then
+    INSTALL_DIR="$HOME/Downloads"
+elif [ -d "$HOME/Download" ]; then
+    INSTALL_DIR="$HOME/Download"
+else
+    INSTALL_DIR="$HOME"
+fi
+
+echo "Downloading to: $INSTALL_DIR"
+echo
 
 # Download binary
 echo "Downloading Corridor..."
@@ -19,7 +27,7 @@ if command -v curl &> /dev/null; then
 elif command -v wget &> /dev/null; then
     wget -q https://corridor.rknain.com/Corridor -O "$INSTALL_DIR/Corridor"
 else
-    echo "✘ Error: Neither curl nor wget found. Please install one of them."
+    echo "Error: Neither curl nor wget found. Please install one of them."
     exit 1
 fi
 
@@ -27,22 +35,14 @@ fi
 echo "Making executable..."
 chmod +x "$INSTALL_DIR/Corridor"
 
-# Check if ~/.local/bin is in PATH
-if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-    echo
-    echo "⚠︎  Note: $INSTALL_DIR is not in your PATH"
-    echo "   Add this line to your ~/.bashrc or ~/.zshrc:"
-    echo
-    echo "   export PATH=\"\$HOME/.local/bin:\$PATH\""
-    echo
-fi
-
 echo
 echo "Installation complete!"
 echo
-echo "Run Corridor with:"
-echo "   Corridor"
-echo
-echo "Or with full path:"
+echo "Corridor has been downloaded to:"
 echo "   $INSTALL_DIR/Corridor"
+echo
+echo "To run Corridor:"
+echo "   1. Open your file manager and go to Downloads"
+echo "   2. Double-click 'Corridor' to run"
+echo "   Or run from terminal: $INSTALL_DIR/Corridor"
 echo
