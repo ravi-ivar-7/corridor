@@ -1,4 +1,5 @@
 use crate::history::ClipboardHistory;
+use crate::{BROADCAST_DIALOG, SETTINGS_DIALOG, HELP_DIALOG, ABOUT_DIALOG, SHOW_HISTORY, extract_dialog};
 use ksni;
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc;
@@ -186,12 +187,14 @@ impl ksni::Tray for TrayIcon {
                     use std::process::Command;
                     use std::io::{BufRead, BufReader};
 
-                    // Launch custom broadcast dialog
-                    let script_path = std::env::current_exe()
-                        .ok()
-                        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                        .map(|p| p.join("../../dialogs/broadcast_dialog.py"))
-                        .unwrap_or_else(|| std::path::PathBuf::from("dialogs/broadcast_dialog.py"));
+                    // Extract embedded broadcast dialog
+                    let script_path = match extract_dialog(BROADCAST_DIALOG, "broadcast_dialog.py") {
+                        Ok(path) => path,
+                        Err(e) => {
+                            log::error!("Failed to extract broadcast dialog: {}", e);
+                            return;
+                        }
+                    };
 
                     let ws_tx_clone = tray.ws_tx.clone();
                     let history_clone = tray.history.clone();
@@ -260,11 +263,13 @@ impl ksni::Tray for TrayIcon {
                         activate: Box::new(|_tray: &mut TrayIcon| {
                             use std::process::Command;
 
-                            let script_path = std::env::current_exe()
-                                .ok()
-                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                                .map(|p| p.join("../../dialogs/settings_dialog.py"))
-                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/settings_dialog.py"));
+                            let script_path = match extract_dialog(SETTINGS_DIALOG, "settings_dialog.py") {
+                                Ok(path) => path,
+                                Err(e) => {
+                                    log::error!("Failed to extract settings dialog: {}", e);
+                                    return;
+                                }
+                            };
 
                             std::thread::spawn(move || {
                                 let _ = Command::new("python3")
@@ -280,11 +285,13 @@ impl ksni::Tray for TrayIcon {
                         activate: Box::new(|_tray: &mut TrayIcon| {
                             use std::process::Command;
 
-                            let script_path = std::env::current_exe()
-                                .ok()
-                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                                .map(|p| p.join("../../dialogs/help_dialog.py"))
-                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/help_dialog.py"));
+                            let script_path = match extract_dialog(HELP_DIALOG, "help_dialog.py") {
+                                Ok(path) => path,
+                                Err(e) => {
+                                    log::error!("Failed to extract help dialog: {}", e);
+                                    return;
+                                }
+                            };
 
                             std::thread::spawn(move || {
                                 let _ = Command::new("python3")
@@ -300,11 +307,13 @@ impl ksni::Tray for TrayIcon {
                         activate: Box::new(|_tray: &mut TrayIcon| {
                             use std::process::Command;
 
-                            let script_path = std::env::current_exe()
-                                .ok()
-                                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                                .map(|p| p.join("../../dialogs/about_dialog.py"))
-                                .unwrap_or_else(|| std::path::PathBuf::from("dialogs/about_dialog.py"));
+                            let script_path = match extract_dialog(ABOUT_DIALOG, "about_dialog.py") {
+                                Ok(path) => path,
+                                Err(e) => {
+                                    log::error!("Failed to extract about dialog: {}", e);
+                                    return;
+                                }
+                            };
 
                             std::thread::spawn(move || {
                                 let _ = Command::new("python3")
@@ -381,11 +390,13 @@ impl ksni::Tray for TrayIcon {
                                 let token = tray.token.clone();
 
                                 std::thread::spawn(move || {
-                                    let script_path = std::env::current_exe()
-                                        .ok()
-                                        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-                                        .map(|p| p.join("../../dialogs/show_history.py"))
-                                        .unwrap_or_else(|| std::path::PathBuf::from("dialogs/show_history.py"));
+                                    let script_path = match extract_dialog(SHOW_HISTORY, "show_history.py") {
+                                        Ok(path) => path,
+                                        Err(e) => {
+                                            log::error!("Failed to extract show_history dialog: {}", e);
+                                            return;
+                                        }
+                                    };
 
                                     // Pass "fetch" as first arg to fetch from server
                                     let _ = Command::new("python3")

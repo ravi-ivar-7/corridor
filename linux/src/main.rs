@@ -12,6 +12,37 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc;
 use tray::TrayIcon;
 use websocket::{WebSocketClient, WsEvent};
+use std::io::Write;
+
+// Embed all Python dialog scripts
+pub const SETUP_DIALOG: &str = include_str!("../dialogs/setup_dialog.py");
+pub const INSTANCE_CHECK_DIALOG: &str = include_str!("../dialogs/instance_check_dialog.py");
+pub const BROADCAST_DIALOG: &str = include_str!("../dialogs/broadcast_dialog.py");
+pub const SETTINGS_DIALOG: &str = include_str!("../dialogs/settings_dialog.py");
+pub const HELP_DIALOG: &str = include_str!("../dialogs/help_dialog.py");
+pub const ABOUT_DIALOG: &str = include_str!("../dialogs/about_dialog.py");
+pub const SHOW_HISTORY: &str = include_str!("../dialogs/show_history.py");
+
+// Helper function to extract embedded dialog to temp file
+pub fn extract_dialog(content: &str, name: &str) -> Result<std::path::PathBuf> {
+    let temp_dir = std::env::temp_dir().join("corridor-dialogs");
+    std::fs::create_dir_all(&temp_dir)?;
+
+    let dialog_path = temp_dir.join(name);
+    let mut file = std::fs::File::create(&dialog_path)?;
+    file.write_all(content.as_bytes())?;
+
+    // Make executable
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = file.metadata()?.permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&dialog_path, perms)?;
+    }
+
+    Ok(dialog_path)
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -29,11 +60,9 @@ async fn main() -> Result<()> {
 
         log::info!("Manual start detected, showing setup dialog");
 
-        let script_path = std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-            .map(|p| p.join("../../dialogs/setup_dialog.py"))
-            .unwrap_or_else(|| std::path::PathBuf::from("dialogs/setup_dialog.py"));
+        // Extract embedded setup dialog to temp file
+        let script_path = extract_dialog(SETUP_DIALOG, "setup_dialog.py")
+            .context("Failed to extract setup dialog")?;
 
         let status = Command::new("python3")
             .arg(&script_path)
@@ -58,12 +87,9 @@ async fn main() -> Result<()> {
     if !instance.is_single() {
         use std::process::Command;
 
-        // Show dialog to user
-        let script_path = std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-            .map(|p| p.join("../../dialogs/instance_check_dialog.py"))
-            .unwrap_or_else(|| std::path::PathBuf::from("dialogs/instance_check_dialog.py"));
+        // Extract embedded instance check dialog to temp file
+        let script_path = extract_dialog(INSTANCE_CHECK_DIALOG, "instance_check_dialog.py")
+            .context("Failed to extract instance check dialog")?;
 
         let output = Command::new("python3")
             .arg(&script_path)
