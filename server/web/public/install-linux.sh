@@ -19,7 +19,7 @@ if command -v curl &> /dev/null; then
 elif command -v wget &> /dev/null; then
     wget -q https://corridor.rknain.com/Corridor -O "$INSTALL_DIR/Corridor"
 else
-    echo "❌ Error: Neither curl nor wget found. Please install one of them."
+    echo "✘ Error: Neither curl nor wget found. Please install one of them."
     exit 1
 fi
 
@@ -30,7 +30,7 @@ chmod +x "$INSTALL_DIR/Corridor"
 # Check if ~/.local/bin is in PATH
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     echo
-    echo "⚠️  Note: $INSTALL_DIR is not in your PATH"
+    echo "⚠︎  Note: $INSTALL_DIR is not in your PATH"
     echo "   Add this line to your ~/.bashrc or ~/.zshrc:"
     echo
     echo "   export PATH=\"\$HOME/.local/bin:\$PATH\""
