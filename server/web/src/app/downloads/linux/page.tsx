@@ -60,7 +60,7 @@ export default function LinuxDownloadPage() {
           </div>
           <div className="text-center">
             <p className="text-xs text-gray-600">
-              Installs to <code className="bg-gray-200 px-1 rounded">~/.local/bin/Corridor</code> • Requires curl
+              Installs to <code className="bg-gray-200 px-1 rounded">~/.local/bin/corridor</code> • Adds to PATH
             </p>
           </div>
         </div>
@@ -74,8 +74,8 @@ export default function LinuxDownloadPage() {
           </div>
           <div className="text-center mb-4">
             <a
-              href="/Corridor"
-              download="Corridor"
+              href="/corridor"
+              download="corridor"
               className="inline-flex items-center justify-center px-8 py-4 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 text-lg"
             >
               <Download className="h-6 w-6 mr-2" />
@@ -90,11 +90,11 @@ export default function LinuxDownloadPage() {
             <div className="space-y-2">
               <div className="bg-gray-900 text-gray-100 px-4 py-2 rounded-lg font-mono text-sm">
                 <div className="text-gray-400 text-xs mb-1"># Make executable</div>
-                <code>$ chmod +x Corridor</code>
+                <code>$ chmod +x corridor</code>
               </div>
               <div className="bg-gray-900 text-gray-100 px-4 py-2 rounded-lg font-mono text-sm">
                 <div className="text-gray-400 text-xs mb-1"># Run the application</div>
-                <code>$ ./Corridor</code>
+                <code>$ ./corridor</code>
               </div>
               <p className="text-xs text-gray-600 mt-2 text-center">
                 Or simply double-click the file after making it executable
@@ -140,11 +140,11 @@ export default function LinuxDownloadPage() {
               },
               {
                 step: '2',
-                title: 'Run Corridor',
-                desc: 'Execute: Corridor - A setup dialog will appear on first run',
+                title: 'Run corridor',
+                desc: 'Execute: corridor - Runs detached from terminal. A setup dialog will appear on first run',
                 icon: Play,
                 color: 'amber',
-                code: 'Corridor'
+                code: 'corridor'
               },
               {
                 step: '3',
@@ -246,8 +246,8 @@ export default function LinuxDownloadPage() {
             <div>$ cat &gt; ~/.config/autostart/corridor.desktop &lt;&lt;EOF</div>
             <div>[Desktop Entry]</div>
             <div>Type=Application</div>
-            <div>Name=Corridor</div>
-            <div>Exec=/path/to/Corridor --autostart</div>
+            <div>Name=corridor</div>
+            <div>Exec=$HOME/.local/bin/corridor --autostart</div>
             <div>Hidden=false</div>
             <div>NoDisplay=false</div>
             <div>X-GNOME-Autostart-enabled=true</div>
@@ -283,13 +283,19 @@ export default function LinuxDownloadPage() {
                 Make sure the binary is executable:
               </p>
               <code className="block bg-gray-900 text-gray-100 px-4 py-2 rounded-lg text-sm font-mono">
-                $ chmod +x Corridor
+                $ chmod +x corridor
               </code>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Connection issues</h3>
-              <p className="text-sm text-gray-600">
-                Check logs with: RUST_LOG=debug ./Corridor
+              <h3 className="font-semibold text-gray-900 mb-2">Viewing logs / Debug mode</h3>
+              <p className="text-sm text-gray-600 mb-2">
+                By default, corridor runs detached. To see logs and debug output:
+              </p>
+              <code className="block bg-gray-900 text-gray-100 px-4 py-2 rounded-lg text-sm font-mono">
+                $ corridor --debug
+              </code>
+              <p className="text-xs text-gray-500 mt-2">
+                Or use -d for short: corridor -d
               </p>
             </div>
           </div>

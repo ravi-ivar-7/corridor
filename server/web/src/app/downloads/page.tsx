@@ -178,7 +178,7 @@ export default function DownloadsPage() {
                 </p>
               </div>
               <p className="text-xs text-slate-500 mt-2">
-                Manual: Download → <code className="bg-slate-100 px-1 rounded text-[11px]">chmod +x</code> → Double-click to run
+                Installs to <code className="bg-slate-100 px-1 rounded text-[11px]">~/.local/bin</code> and adds to PATH
               </p>
             </div>
 
@@ -191,8 +191,8 @@ export default function DownloadsPage() {
                 Install Instructions
               </Link>
               <a
-                href="/Corridor"
-                download="Corridor"
+                href="/corridor"
+                download="corridor"
                 className="w-full bg-white text-orange-600 border border-orange-200 py-2 px-4 rounded-lg text-xs sm:text-sm font-medium hover:bg-orange-50 transition-colors flex items-center justify-center"
               >
                 Direct Download

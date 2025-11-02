@@ -46,13 +46,61 @@ pub fn extract_dialog(content: &str, name: &str) -> Result<std::path::PathBuf> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Parse command line arguments
+    let args: Vec<String> = std::env::args().collect();
+
+    // Handle help flag
+    if args.contains(&"--help".to_string()) || args.contains(&"-h".to_string()) {
+        println!("corridor - Cross-platform Clipboard Sync v1.0.0");
+        println!();
+        println!("USAGE:");
+        println!("    corridor [OPTIONS]");
+        println!();
+        println!("OPTIONS:");
+        println!("    -h, --help       Show this help message");
+        println!("    -d, --debug      Run in debug mode (attached to terminal)");
+        println!("    --autostart      Start in autostart mode (skips setup dialog)");
+        println!();
+        println!("By default, corridor runs detached from the terminal.");
+        println!("Use --debug to see logs in the terminal.");
+        return Ok(());
+    }
+
+    let is_debug = args.contains(&"--debug".to_string()) || args.contains(&"-d".to_string());
+    let is_autostart = args.contains(&"--autostart".to_string());
+
+    // Detach from terminal unless debug mode or autostart
+    if !is_debug && !is_autostart {
+        use std::process::Command;
+
+        // Check if we're already running detached (to avoid infinite recursion)
+        let is_detached = std::env::var("CORRIDOR_DETACHED").is_ok();
+
+        if !is_detached {
+            // Fork and run in background
+            let mut cmd = Command::new(&args[0]);
+            cmd.env("CORRIDOR_DETACHED", "1");
+
+            // Pass through all args except the program name
+            for arg in &args[1..] {
+                cmd.arg(arg);
+            }
+
+            // Detach from terminal
+            cmd.stdin(std::process::Stdio::null())
+               .stdout(std::process::Stdio::null())
+               .stderr(std::process::Stdio::null());
+
+            cmd.spawn().context("Failed to spawn detached process")?;
+
+            // Exit the parent process
+            return Ok(());
+        }
+    }
+
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    log::info!("Starting Corridor Linux Client v1.0.0");
-
-    // Check if started with --autostart flag (from autostart or setup dialog)
-    let args: Vec<String> = std::env::args().collect();
-    let is_autostart = args.contains(&"--autostart".to_string());
+    log::info!("Starting corridor Linux Client v1.0.0 (debug: {})", is_debug);
 
     // If not autostart, show setup dialog
     if !is_autostart {
@@ -81,7 +129,7 @@ async fn main() -> Result<()> {
     }
 
     // Check for single instance
-    let instance = single_instance::SingleInstance::new("corridor-clipboard-sync")
+    let mut instance = single_instance::SingleInstance::new("corridor-clipboard-sync")
         .context("Failed to create single instance lock")?;
 
     if !instance.is_single() {
@@ -99,36 +147,47 @@ async fn main() -> Result<()> {
             if result.status.success() {
                 let choice = String::from_utf8_lossy(&result.stdout).trim().to_string();
                 if choice == "terminate" {
-                    // Get current process ID to exclude it
+                    // Get current process ID to exclude it from kill
                     let current_pid = std::process::id();
 
-                    // Kill existing corridor processes (excluding current one)
-                    let output = Command::new("pgrep")
+                    // Find all corridor processes
+                    let pgrep_output = Command::new("pgrep")
                         .args(&["-f", "corridor"])
                         .output();
 
-                    if let Ok(pgrep_result) = output {
-                        let pids = String::from_utf8_lossy(&pgrep_result.stdout);
+                    if let Ok(result) = pgrep_output {
+                        let pids = String::from_utf8_lossy(&result.stdout);
                         for pid_str in pids.lines() {
                             if let Ok(pid) = pid_str.trim().parse::<u32>() {
+                                // Only kill if it's not the current process
                                 if pid != current_pid {
-                                    // Kill the other corridor process
+                                    log::info!("Killing corridor process with PID: {}", pid);
                                     let _ = Command::new("kill")
-                                        .arg(pid.to_string())
+                                        .args(&["-9", &pid.to_string()])
                                         .output();
                                 }
                             }
                         }
                     }
 
-                    // Wait a moment for process to die
-                    std::thread::sleep(std::time::Duration::from_secs(1));
+                    log::info!("Killed existing corridor processes");
 
-                    // Force release the lock by dropping and recreating
+                    // Wait a moment for process to die and lock to release
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+
+                    // Force release the lock by dropping
                     drop(instance);
 
-                    // Continue - will reacquire lock below
-                    log::info!("Terminated existing instance, starting new one");
+                    // Re-acquire the lock
+                    instance = single_instance::SingleInstance::new("corridor-clipboard-sync")
+                        .context("Failed to re-acquire single instance lock")?;
+
+                    if !instance.is_single() {
+                        eprintln!("❌ Failed to terminate existing instance");
+                        std::process::exit(1);
+                    }
+
+                    log::info!("Successfully terminated existing instance and acquired lock");
                 } else {
                     // User chose cancel
                     log::info!("User chose to keep existing instance");
@@ -136,12 +195,12 @@ async fn main() -> Result<()> {
                 }
             } else {
                 // Dialog failed, exit
-                eprintln!("❌ Corridor is already running!");
+                eprintln!("❌ corridor is already running!");
                 std::process::exit(1);
             }
         } else {
             // Failed to show dialog
-            eprintln!("❌ Corridor is already running!");
+            eprintln!("❌ corridor is already running!");
             std::process::exit(1);
         }
     }
@@ -149,7 +208,7 @@ async fn main() -> Result<()> {
     let config = Config::load().context("Failed to load configuration")?;
 
     if !config.is_configured() {
-        eprintln!("❌ Corridor is not configured.");
+        eprintln!("❌ corridor is not configured.");
         eprintln!("Please create a config file at: {:?}", Config::config_path()?);
         eprintln!("\nExample config:");
         eprintln!("{}", serde_json::to_string_pretty(&Config::default())?);
