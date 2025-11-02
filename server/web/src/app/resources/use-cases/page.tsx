@@ -2,11 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  Terminal, 
-  BookOpen, 
-  LucideIcon, 
-  Users, 
+import {
+  Terminal,
+  BookOpen,
+  LucideIcon,
+  Users,
   ClipboardCheck,
 } from 'lucide-react';
 
