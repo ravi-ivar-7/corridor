@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, Download, Terminal, Check, Key, Server, Cpu, HelpCircle, Globe, Monitor } from 'lucide-react';
+import { Copy, Download, Terminal, Check, Key, Server, Cpu, HelpCircle, Globe, Monitor, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 
 const steps = [
@@ -13,8 +13,8 @@ const steps = [
     bgColor: 'bg-blue-50',
   },
   {
-    title: 'Download Corridor',
-    description: 'Download the Windows executable or use the web interface.',
+    title: 'Choose Platform',
+    description: 'Windows, Linux, Android app or web browser.',
     icon: <Download className="w-5 h-5" />,
     color: 'text-purple-500',
     bgColor: 'bg-purple-50',
@@ -35,26 +35,6 @@ const steps = [
   },
 ];
 
-const setupMethods = [
-  {
-    title: 'Windows Client',
-    description: 'Download and run the Corridor Windows application',
-    command: '1. Download Corridor.exe from the downloads page\n2. Run the executable\n3. Enter your token in the setup window\n4. Click "Start Sync"',
-    icon: <Monitor className="w-5 h-5 text-blue-500" />,
-  },
-  {
-    title: 'Web Interface',
-    description: 'Use Corridor directly in your web browser',
-    command: '1. Visit the Corridor web app\n2. Enter or generate a token\n3. Start copying and pasting\n4. Text syncs instantly across devices',
-    icon: <Globe className="w-5 h-5 text-purple-500" />,
-  },
-  {
-    title: 'Background Service',
-    description: 'Set up Corridor to run automatically on Windows startup',
-    command: '1. Enable "Run Silently" in Corridor settings\n2. Add to Windows startup folder\n3. Corridor runs in system tray\n4. Automatic clipboard sync',
-    icon: <Cpu className="w-5 h-5 text-emerald-500" />,
-  },
-];
 
 const faqs = [
   {
@@ -66,12 +46,20 @@ const faqs = [
     answer: 'Yes, all clipboard data is encrypted in transit. Only devices with your unique token can access your clipboard data.'
   },
   {
+    question: 'Which platforms are supported?',
+    answer: 'Corridor works on Windows, Linux, Android, and any web browser. Download native apps for better integration or use the web version instantly.'
+  },
+  {
     question: 'How do I run it in the background?',
-    answer: 'Enable "Run Silently" mode in Corridor settings to run it as a background service, or add it to Windows startup folder.'
+    answer: 'On Windows/Linux, enable auto-start in the setup dialog. The app runs in the system tray. On Android, the app runs as a background service.'
   },
   {
     question: 'Can I use this on multiple devices?',
-    answer: 'Yes, use the same token on all your devices (Windows client or web interface) to sync clipboard content across them.'
+    answer: 'Yes! Use the same token on all your devices (Windows, Linux, Android, or web) to sync clipboard content across all of them in real-time.'
+  },
+  {
+    question: 'What happens when I\'m offline?',
+    answer: 'Items copied while offline are queued and automatically synced when you reconnect. No clipboard data is lost.'
   }
 ];
 
@@ -81,20 +69,7 @@ export default function HowToUsePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 sm:mb-12">
-          <div className="relative">
-            <div className="absolute -top-2 -left-4 w-24 h-24 bg-blue-100/50 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
-            <div className="absolute -bottom-2 -right-4 w-24 h-24 bg-purple-100/50 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
-            <div className="relative z-10">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
-                How to Use Corridor
-              </h1>
-              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Get started with Corridor in just a few simple steps. Choose your preferred method below.
-              </p>
-            </div>
-          </div>
-        </div>
+
 
         {/* Quick Start Steps */}
         <div className="mb-12">
@@ -116,38 +91,13 @@ export default function HowToUsePage() {
           </div>
         </div>
 
-        {/* Setup Methods */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-slate-800 mb-6 text-center">Setup Methods</h2>
-          <div className="space-y-6">
-            {setupMethods.map((method, index) => (
-              <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-                <div className="p-4">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center mt-0.5 mr-4">
-                      {method.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-slate-800 mb-2">{method.title}</h3>
-                      <p className="text-slate-600 mb-3">{method.description}</p>
-                      <div className="bg-slate-50 p-3 rounded border border-slate-200">
-                        <pre className="text-sm text-slate-700 whitespace-pre-line font-mono">{method.command}</pre>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Detailed Instructions */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold text-slate-800 mb-6 text-center">Detailed Instructions</h2>
           
           {/* Step 1: Get Token */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-100 shadow-sm mb-6">
-            <div className="p-4 sm:p-6">
+            <div className="p-2 md:p-4">
               <div className="flex items-center mb-4">
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0">
                   <span className="text-blue-600 font-bold text-sm">1</span>
@@ -163,43 +113,73 @@ export default function HowToUsePage() {
             </div>
           </div>
 
-          {/* Step 2: Download */}
+          {/* Step 2: Choose Platform */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-100 shadow-sm mb-6">
-            <div className="p-4 sm:p-6">
+            <div className="p-2 md:p-4">
               <div className="flex items-center mb-4">
                 <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3 flex-shrink-0">
                   <span className="text-purple-600 font-bold">2</span>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-800">Download Corridor</h3>
+                <h3 className="text-lg font-semibold text-slate-800">Choose Your Platform</h3>
               </div>
               <div className="pl-6 sm:pl-8 space-y-3">
-                <p className="text-slate-700">Choose your preferred method:</p>
-                
+                <p className="text-slate-700">Corridor is available on multiple platforms:</p>
+
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                  <div className="bg-sky-50 p-4 rounded border border-sky-200">
                     <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
-                      <Monitor className="w-4 h-4 mr-2 text-blue-500" />
-                      Windows Client
+                      <Monitor className="w-4 h-4 mr-2 text-sky-600" />
+                      Windows
                     </h4>
-                    <p className="text-sm text-slate-600 mb-3">Download the native Windows application for seamless clipboard synchronization.</p>
-                    <Link 
-                      href="/downloads"
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    <p className="text-sm text-slate-600 mb-3">Native application with system tray integration and auto-start.</p>
+                    <Link
+                      href="/downloads/windows"
+                      className="inline-flex items-center px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors"
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      Download for Windows
+                      Download
                     </Link>
                   </div>
-                  
-                  <div className="bg-slate-50 p-4 rounded border border-slate-200">
+
+                  <div className="bg-orange-50 p-4 rounded border border-orange-200">
                     <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
-                      <Globe className="w-4 h-4 mr-2 text-green-500" />
-                      Web Interface
+                      <Monitor className="w-4 h-4 mr-2 text-orange-600" />
+                      Linux
                     </h4>
-                    <p className="text-sm text-slate-600 mb-3">Use Corridor directly in your web browser - no installation required.</p>
-                    <Link 
+                    <p className="text-sm text-slate-600 mb-3">Native app for Ubuntu, Debian, Fedora, and other distros.</p>
+                    <Link
+                      href="/downloads/linux"
+                      className="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Link>
+                  </div>
+
+                  <div className="bg-emerald-50 p-4 rounded border border-emerald-200">
+                    <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
+                      <Smartphone className="w-4 h-4 mr-2 text-emerald-600" />
+                      Android
+                    </h4>
+                    <p className="text-sm text-slate-600 mb-3">Mobile app for Android phones and tablets.</p>
+                    <Link
+                      href="/downloads/android"
+                      className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Link>
+                  </div>
+
+                  <div className="bg-violet-50 p-4 rounded border border-violet-200">
+                    <h4 className="font-semibold text-slate-800 mb-2 flex items-center">
+                      <Globe className="w-4 h-4 mr-2 text-violet-600" />
+                      Web
+                    </h4>
+                    <p className="text-sm text-slate-600 mb-3">Use directly in any web browser - no installation needed.</p>
+                    <Link
                       href="/"
-                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                      className="inline-flex items-center px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors"
                     >
                       <Globe className="w-4 h-4 mr-2" />
                       Open Web App
@@ -212,7 +192,7 @@ export default function HowToUsePage() {
 
           {/* Step 3: Enter Token */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-100 shadow-sm mb-6">
-            <div className="p-4 sm:p-6">
+            <div className="p-2 md:p-4">
               <div className="flex items-center mb-4">
                 <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-3 flex-shrink-0">
                   <span className="text-emerald-600 font-bold">3</span>
@@ -220,26 +200,46 @@ export default function HowToUsePage() {
                 <h3 className="text-lg font-semibold text-slate-800">Enter Your Token</h3>
               </div>
               <div className="pl-6 sm:pl-8 space-y-3">
-                <p className="text-slate-700">Open Corridor and enter your token in the setup window:</p>
-                
+                <p className="text-slate-700">Open Corridor and enter your token:</p>
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                    <h4 className="font-semibold text-slate-800 mb-2">Windows Client:</h4>
+                    <h4 className="font-semibold text-slate-800 mb-2">Windows:</h4>
                     <ol className="text-sm text-slate-700 space-y-1 list-decimal list-inside">
-                      <li>Run <code className="bg-slate-100 px-1 py-0.5 rounded text-xs font-mono">Corridor.exe</code></li>
-                      <li>Enter your token in the &quot;Token&quot; field</li>
-                      <li>Click &quot;Start Sync&quot; to begin</li>
-                      <li>Enable &quot;Run Silently&quot; for background operation</li>
+                      <li>Run the app - setup dialog appears</li>
+                      <li>Enter your token</li>
+                      <li>Choose mode (interactive/silent)</li>
+                      <li>Click &quot;Save and Start&quot;</li>
                     </ol>
                   </div>
-                  
+
                   <div className="bg-slate-50 p-4 rounded border border-slate-200">
-                    <h4 className="font-semibold text-slate-800 mb-2">Web Interface:</h4>
+                    <h4 className="font-semibold text-slate-800 mb-2">Linux:</h4>
                     <ol className="text-sm text-slate-700 space-y-1 list-decimal list-inside">
-                      <li>Visit the Corridor web app</li>
+                      <li>Run the <code className="bg-slate-100 px-1 py-0.5 rounded text-xs font-mono"> Corridor</code>application</li>
+                      <li>Setup dialog appears on first run</li>
+                      <li>Enter token and configure settings</li>
+                      <li>System tray icon shows connection</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                    <h4 className="font-semibold text-slate-800 mb-2">Android:</h4>
+                    <ol className="text-sm text-slate-700 space-y-1 list-decimal list-inside">
+                      <li>Open the Corridor app</li>
+                      <li>Enter your token and other settings</li>
+                      <li>Grant notifications permissions</li>
+                      <li>Start syncing automatically</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded border border-slate-200">
+                    <h4 className="font-semibold text-slate-800 mb-2">Web:</h4>
+                    <ol className="text-sm text-slate-700 space-y-1 list-decimal list-inside">
+                      <li>Visit the web app</li>
                       <li>Enter or generate a token</li>
                       <li>Start copying and pasting</li>
-                      <li>Text syncs instantly across devices</li>
+                      <li>Text syncs instantly</li>
                     </ol>
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export default function HowToUsePage() {
 
           {/* Step 4: Start Syncing */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-100 shadow-sm">
-            <div className="p-4 sm:p-6">
+            <div className="p-2 md:p-4">
               <div className="flex items-center mb-4">
                 <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3 flex-shrink-0">
                   <span className="text-amber-600 font-bold">4</span>
@@ -286,8 +286,8 @@ export default function HowToUsePage() {
 
         {/* Navigation */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 max-w-4xl mx-auto px-4">
-          <Link 
-            href="/resources/what-is-clipboard-sync" 
+          <Link
+            href="/resources/what-is-corridor"
             className="group w-full sm:w-auto text-center sm:text-left inline-flex items-center justify-center sm:justify-start text-indigo-600 hover:text-indigo-800 font-medium transition-all duration-200 py-2.5 px-5 rounded-lg hover:bg-indigo-50 border border-indigo-100 hover:border-indigo-200"
           >
             <svg className="w-4 h-4 mr-2 transform rotate-180 flex-shrink-0 text-indigo-500 group-hover:text-indigo-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

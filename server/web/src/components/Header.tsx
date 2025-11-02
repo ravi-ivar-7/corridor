@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, ChevronDown, Menu, X, Info, List, Download } from 'lucide-react';
+import { Home, BookOpen, ChevronDown, Menu, X, Info, List, Download, Monitor, Smartphone, Terminal } from 'lucide-react';
 import Image from 'next/image';
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
+  const [isDownloadsOpen, setIsDownloadsOpen] = useState(false);
   const pathname = usePathname();
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const resourcesDropdownRef = useRef<HTMLDivElement>(null);
+  const downloadsDropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleResources = (e: React.MouseEvent) => {
@@ -17,11 +19,19 @@ export default function Header() {
     setIsResourcesOpen(!isResourcesOpen);
   };
 
+  const toggleDownloads = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDownloadsOpen(!isDownloadsOpen);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (resourcesDropdownRef.current && !resourcesDropdownRef.current.contains(event.target as Node)) {
         setIsResourcesOpen(false);
+      }
+      if (downloadsDropdownRef.current && !downloadsDropdownRef.current.contains(event.target as Node)) {
+        setIsDownloadsOpen(false);
       }
     };
 
@@ -68,13 +78,13 @@ export default function Header() {
               </span>
             </Link>
 
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative" ref={resourcesDropdownRef}>
               <button
                 onClick={toggleResources}
                 onMouseEnter={() => setIsResourcesOpen(true)}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isResourcesOpen || pathname.startsWith('/resources')
-                    ? 'text-blue-600 bg-white/30 border-blue-200 shadow-lg shadow-blue-500/20' 
+                    ? 'text-blue-600 bg-white/30 border-blue-200 shadow-lg shadow-blue-500/20'
                     : 'text-slate-700/80 hover:text-slate-900 hover:bg-white/30 border-white/20 hover:border-white/40 hover:shadow-lg hover:shadow-blue-500/20'
                 }`}
               >
@@ -82,9 +92,9 @@ export default function Header() {
                 Resources
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isResourcesOpen ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {isResourcesOpen && (
-                <div 
+                <div
                   className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-xl border border-white/40 shadow-2xl shadow-black/20 overflow-hidden z-50"
                   onMouseEnter={() => setIsResourcesOpen(true)}
                   onMouseLeave={() => setIsResourcesOpen(false)}
@@ -97,11 +107,11 @@ export default function Header() {
                     All Resources
                   </Link>
                   <Link
-                    href="/resources/what-is-clipboard-sync"
+                    href="/resources/what-is-corridor"
                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
                   >
                     <span className="w-4 h-4 text-blue-500">❓</span>
-                    What is it?
+                    What is Corridor?
                   </Link>
                   <Link
                     href="/resources/how-to-use"
@@ -121,11 +131,11 @@ export default function Header() {
               )}
             </div>
 
-            <Link 
-              href="/about" 
+            <Link
+              href="/about"
               className={`flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-slate-50/80 rounded-lg transition-colors ${
                 pathname === '/about'
-                  ? 'text-blue-600 bg-blue-50' 
+                  ? 'text-blue-600 bg-blue-50'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
@@ -135,19 +145,58 @@ export default function Header() {
               </span>
             </Link>
 
-            <Link 
-              href="/downloads" 
-              className={`flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-slate-50/80 rounded-lg transition-colors ${
-                pathname === '/downloads'
-                  ? 'text-blue-600 bg-blue-50' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Download className="h-4 w-4 text-slate-500" />
+            <div className="relative" ref={downloadsDropdownRef}>
+              <button
+                onClick={toggleDownloads}
+                onMouseEnter={() => setIsDownloadsOpen(true)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isDownloadsOpen || pathname.startsWith('/downloads')
+                    ? 'text-blue-600 bg-white/30 border-blue-200 shadow-lg shadow-blue-500/20'
+                    : 'text-slate-700/80 hover:text-slate-900 hover:bg-white/30 border-white/20 hover:border-white/40 hover:shadow-lg hover:shadow-blue-500/20'
+                }`}
+              >
+                <Download className={`h-4 w-4 ${isDownloadsOpen || pathname.startsWith('/downloads') ? 'text-blue-500' : 'text-slate-500'}`} />
                 Downloads
-              </span>
-            </Link>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDownloadsOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isDownloadsOpen && (
+                <div
+                  className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-xl border border-white/40 shadow-2xl shadow-black/20 overflow-hidden z-50"
+                  onMouseEnter={() => setIsDownloadsOpen(true)}
+                  onMouseLeave={() => setIsDownloadsOpen(false)}
+                >
+                  <Link
+                    href="/downloads"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <Download className="w-4 h-4 text-blue-500" />
+                    All Downloads
+                  </Link>
+                  <Link
+                    href="/downloads/windows"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <Monitor className="w-4 h-4 text-sky-500" />
+                    Windows
+                  </Link>
+                  <Link
+                    href="/downloads/linux"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <Terminal className="w-4 h-4 text-orange-500" />
+                    Linux
+                  </Link>
+                  <Link
+                    href="/downloads/android"
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-white/70 transition-all duration-200"
+                  >
+                    <Smartphone className="w-4 h-4 text-emerald-500" />
+                    Android
+                  </Link>
+                </div>
+              )}
+            </div>
             </nav>
             
             {/* Mobile menu button */}
@@ -218,7 +267,7 @@ export default function Header() {
                     All Resources
                   </Link>
                   <Link
-                    href="/resources/what-is-clipboard-sync"
+                    href="/resources/what-is-corridor"
                     className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
                     onClick={() => {
                       setIsOpen(false);
@@ -226,7 +275,7 @@ export default function Header() {
                     }}
                   >
                     <span className="w-4 h-4 mr-3 text-blue-500">❓</span>
-                    What is it?
+                    What is Corridor?
                   </Link>
                   <Link
                     href="/resources/how-to-use"
@@ -258,7 +307,7 @@ export default function Header() {
               href="/about"
               className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                 pathname === '/about'
-                  ? 'bg-emerald-50 text-emerald-600' 
+                  ? 'bg-emerald-50 text-emerald-600'
                   : 'text-slate-700 hover:bg-slate-50/80'
               }`}
               onClick={() => setIsOpen(false)}
@@ -267,18 +316,74 @@ export default function Header() {
               <span>About</span>
             </Link>
 
-            <Link
-              href="/downloads"
-              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                pathname === '/downloads'
-                  ? 'bg-emerald-50 text-emerald-600' 
-                  : 'text-slate-700 hover:bg-slate-50/80'
-              }`}
-              onClick={() => setIsOpen(false)}
-            >
-              <Download className="h-5 w-5 mr-3 text-emerald-500 flex-shrink-0" />
-              <span>Downloads</span>
-            </Link>
+            <div className="space-y-1">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsDownloadsOpen(!isDownloadsOpen);
+                }}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg ${
+                  pathname.startsWith('/downloads')
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-slate-700 hover:bg-slate-50/80'
+                }`}
+              >
+                <div className="flex items-center">
+                  <Download className="h-5 w-5 mr-3 text-blue-500" />
+                  <span>Downloads</span>
+                </div>
+                <ChevronDown className={`h-5 w-5 transition-transform ${isDownloadsOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <div className={`overflow-hidden transition-all duration-200 ${isDownloadsOpen ? 'max-h-60' : 'max-h-0'}`}>
+                <div className="pl-4 space-y-1 py-1">
+                  <Link
+                    href="/downloads"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsDownloadsOpen(false);
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-3 text-slate-400" />
+                    All Downloads
+                  </Link>
+                  <Link
+                    href="/downloads/windows"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsDownloadsOpen(false);
+                    }}
+                  >
+                    <Monitor className="h-4 w-4 mr-3 text-sky-500" />
+                    Windows
+                  </Link>
+                  <Link
+                    href="/downloads/linux"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsDownloadsOpen(false);
+                    }}
+                  >
+                    <Terminal className="h-4 w-4 mr-3 text-orange-500" />
+                    Linux
+                  </Link>
+                  <Link
+                    href="/downloads/android"
+                    className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-700 hover:bg-slate-50/80"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsDownloadsOpen(false);
+                    }}
+                  >
+                    <Smartphone className="h-4 w-4 mr-3 text-emerald-500" />
+                    Android
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

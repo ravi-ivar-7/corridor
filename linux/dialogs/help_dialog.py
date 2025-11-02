@@ -54,8 +54,8 @@ class HelpDialog(Gtk.Window):
         btn1.connect("clicked", lambda b: self.open_url("https://corridor.rknain.com/resources"))
         button_row1.pack_start(btn1, True, True, 0)
 
-        btn2 = Gtk.Button(label="What is Clipboard Sync?")
-        btn2.connect("clicked", lambda b: self.open_url("https://corridor.rknain.com/resources/what-is-clipboard-sync"))
+        btn2 = Gtk.Button(label="What is Corridor?")
+        btn2.connect("clicked", lambda b: self.open_url("https://corridor.rknain.com/resources/what-is-corridor"))
         button_row1.pack_start(btn2, True, True, 0)
 
         content.pack_start(button_row1, False, False, 0)

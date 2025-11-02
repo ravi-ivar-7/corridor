@@ -115,7 +115,7 @@ namespace ClipboardSyncClient.UI
             {
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "https://clipboard-sync-worker.ravi404606.workers.dev",
+                    FileName = "https://corridor.rknain.com",
                     UseShellExecute = true
                 });
             }
@@ -131,7 +131,7 @@ namespace ClipboardSyncClient.UI
             {
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "https://github.com/ravi404606/clipboard-sync",
+                    FileName = "https://github.com/ravi-ivar-7/corridor",
                     UseShellExecute = true
                 });
             }
@@ -147,7 +147,7 @@ namespace ClipboardSyncClient.UI
             {
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "https://clipboard-sync-worker.ravi404606.workers.dev/blogs/faqs",
+                    FileName = "https://corridor.rknain.com/resources",
                     UseShellExecute = true
                 });
             }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { Clipboard, Zap, Smartphone, ArrowRight, Search, Clock } from 'lucide-react';
+import { Clipboard, Zap, Smartphone, ArrowRight, Search, Clock, Monitor, Terminal, Globe, Download } from 'lucide-react';
 import Link from 'next/link';
 
 type BlogPost = {
@@ -14,6 +14,7 @@ type BlogPost = {
   icon: React.ComponentType<{ className?: string }>;
   gradient: string;
   bgGradient: string;
+  textColor: string;
 };
 const BlogCard = ({ post }: { post: BlogPost }) => {
   const IconComponent = post.icon;
@@ -31,7 +32,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
         </div>
         
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <span className={`px-2 py-1 text-[11px] sm:text-xs font-medium rounded-full ${post.gradient} bg-opacity-10 text-emerald-700`}>
+          <span className={`px-2 py-1 text-[11px] sm:text-xs font-medium rounded-full ${post.bgGradient} border border-slate-200/50 text-slate-700`}>
             {post.category}
           </span>
           <span className="flex items-center text-[11px] sm:text-xs text-slate-500">
@@ -44,7 +45,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
         <p className="text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4 line-clamp-3">{post.description}</p>
         
         <div className="mt-auto pt-2 border-t border-slate-100">
-          <div className="inline-flex items-center text-xs sm:text-sm font-medium text-emerald-600 group-hover:text-emerald-700 transition-colors">
+          <div className={`inline-flex items-center text-xs sm:text-sm font-medium ${post.textColor} transition-colors`}>
             Read more
             <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -59,25 +60,27 @@ export default function BlogPage() {
   const blogPosts: BlogPost[] = [
     {
       title: 'What is Corridor?',
-      description: 'Learn about Corridor and how it can help you share text across your devices.',
-      slug: 'what-is-clipboard-sync',
+      description: 'Learn about Corridor and how it works across Windows, Linux, Android, and Web platforms.',
+      slug: 'what-is-corridor',
       category: 'Guide',
       readTime: '3 min read',
       publishDate: 'October 26, 2025',
       icon: Clipboard,
-      gradient: 'bg-gradient-to-r from-emerald-500 to-teal-500',
-      bgGradient: 'bg-gradient-to-r from-emerald-50 to-teal-50',
+      gradient: 'bg-gradient-to-r from-amber-500 to-orange-500',
+      bgGradient: 'bg-gradient-to-r from-amber-50 to-orange-50',
+      textColor: 'text-amber-600 group-hover:text-amber-700',
     },
     {
       title: 'How to Use Corridor',
-      description: 'Step-by-step guide on setting up and using Corridor.',
+      description: 'Step-by-step guide on setting up Corridor on all your devices and getting started.',
       slug: 'how-to-use',
       category: 'Tutorial',
       readTime: '4 min read',
       publishDate: 'October 25, 2025',
       icon: Zap,
-      gradient: 'bg-gradient-to-r from-blue-500 to-indigo-500',
-      bgGradient: 'bg-gradient-to-r from-blue-50 to-indigo-50',
+      gradient: 'bg-gradient-to-r from-cyan-500 to-blue-500',
+      bgGradient: 'bg-gradient-to-r from-cyan-50 to-blue-50',
+      textColor: 'text-cyan-600 group-hover:text-cyan-700',
     },
     {
       title: 'Use Cases for Corridor',
@@ -87,8 +90,9 @@ export default function BlogPage() {
       readTime: '5 min read',
       publishDate: 'October 24, 2025',
       icon: Smartphone,
-      gradient: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      bgGradient: 'bg-gradient-to-r from-purple-50 to-pink-50',
+      gradient: 'bg-gradient-to-r from-fuchsia-500 to-pink-500',
+      bgGradient: 'bg-gradient-to-r from-fuchsia-50 to-pink-50',
+      textColor: 'text-fuchsia-600 group-hover:text-fuchsia-700',
     }
   ];
 
@@ -110,9 +114,87 @@ export default function BlogPage() {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12 px-2">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 mb-3 sm:mb-4">Corridor Resources</h1>
-          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
-            Tips, tricks, and guides to help you get the most out of Corridor
+          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto mb-6">
+            Everything you need to get started with Corridor across all your devices
           </p>
+        </div>
+
+        {/* Platform Downloads Section */}
+        <div className="mb-12 px-2">
+          <div className="bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-sm p-6 sm:p-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2 text-center">Available on All Platforms</h2>
+            <p className="text-sm text-slate-600 text-center mb-6">Download native apps or use the web interface</p>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Link
+                href="/downloads/windows"
+                className="group bg-gradient-to-br from-sky-50/80 to-sky-50/40 hover:from-sky-50 hover:to-sky-100/60 rounded-xl border border-sky-100/50 p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-sky-100/80 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Monitor className="w-6 h-6 sm:w-7 sm:h-7 text-sky-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-800 mb-1 text-sm sm:text-base">Windows</h3>
+                  <p className="text-xs text-slate-600 mb-2">Native desktop app</p>
+                  <div className="inline-flex items-center text-xs font-medium text-sky-600 group-hover:text-sky-700">
+                    <Download className="w-3 h-3 mr-1" />
+                    Download
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href="/downloads/linux"
+                className="group bg-gradient-to-br from-orange-50/80 to-orange-50/40 hover:from-orange-50 hover:to-orange-100/60 rounded-xl border border-orange-100/50 p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-orange-100/80 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Terminal className="w-6 h-6 sm:w-7 sm:h-7 text-orange-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-800 mb-1 text-sm sm:text-base">Linux</h3>
+                  <p className="text-xs text-slate-600 mb-2">Lightweight binary</p>
+                  <div className="inline-flex items-center text-xs font-medium text-orange-600 group-hover:text-orange-700">
+                    <Download className="w-3 h-3 mr-1" />
+                    Download
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href="/downloads/android"
+                className="group bg-gradient-to-br from-emerald-50/80 to-emerald-50/40 hover:from-emerald-50 hover:to-emerald-100/60 rounded-xl border border-emerald-100/50 p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-emerald-100/80 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Smartphone className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-800 mb-1 text-sm sm:text-base">Android</h3>
+                  <p className="text-xs text-slate-600 mb-2">Mobile app (APK)</p>
+                  <div className="inline-flex items-center text-xs font-medium text-emerald-600 group-hover:text-emerald-700">
+                    <Download className="w-3 h-3 mr-1" />
+                    Download
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href="/"
+                className="group bg-gradient-to-br from-violet-50/80 to-violet-50/40 hover:from-violet-50 hover:to-violet-100/60 rounded-xl border border-violet-100/50 p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-violet-100/80 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Globe className="w-6 h-6 sm:w-7 sm:h-7 text-violet-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-800 mb-1 text-sm sm:text-base">Web</h3>
+                  <p className="text-xs text-slate-600 mb-2">Browser-based</p>
+                  <div className="inline-flex items-center text-xs font-medium text-violet-600 group-hover:text-violet-700">
+                    <ArrowRight className="w-3 h-3 mr-1" />
+                    Open App
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Search */}

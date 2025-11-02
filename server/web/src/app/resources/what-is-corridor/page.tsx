@@ -1,6 +1,6 @@
 'use client';
 
-import { RefreshCw, Cpu, Server, Smartphone, Check } from 'lucide-react';
+import { RefreshCw, Cpu, Server, Smartphone, Check, Monitor, Terminal, Globe } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WhatIsClipboardSync() {
@@ -25,8 +25,9 @@ export default function WhatIsClipboardSync() {
           <div className="relative z-10 p-4 sm:p-6 md:p-8 lg:p-10">
             <div className="prose prose-amber max-w-none">
               <p className="text-stone-700/90 text-base sm:text-lg leading-relaxed mb-6 sm:mb-8">
-                Corridor is a background service that works silently to keep your clipboard in sync across all your devices. 
-                Copy text on one machine, and it&apos;s instantly available to paste on any other device - no manual syncing required.
+                Corridor is a cross-platform clipboard synchronization tool available on Windows, Linux, Android, and Web.
+                It works silently in the background to keep your clipboard in sync across all your devices.
+                Copy text on one device, and it&apos;s instantly available to paste on any other - no manual syncing required.
               </p>
               
               <h2 className="text-xl sm:text-2xl font-semibold text-stone-800 mt-8 sm:mt-10 md:mt-12 mb-6 sm:mb-8 relative inline-block">
@@ -83,11 +84,71 @@ export default function WhatIsClipboardSync() {
                       <Smartphone className="w-5 h-5 text-rose-700" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-stone-800 mb-2">Multi-Device</h3>
+                      <h3 className="font-semibold text-stone-800 mb-2">Multi-Platform</h3>
                       <p className="text-stone-600/90 text-sm leading-relaxed">
-                        Works across all your devices - desktops, laptops, and more - all staying in perfect harmony.
+                        Works on Windows, Linux, Android, and Web - all your devices staying in perfect harmony.
                       </p>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-10 sm:mt-14 md:mt-16 pt-6 sm:pt-8 border-t border-stone-100">
+                <h2 className="text-2xl font-semibold text-stone-800 mb-8 relative inline-block">
+                  <span className="relative z-10">Available Everywhere</span>
+                  <span className="absolute -bottom-1 left-0 w-full h-1.5 bg-amber-200/60 rounded-full"></span>
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="p-5 bg-gradient-to-br from-sky-50/50 to-sky-50/20 rounded-2xl border border-sky-100/50 shadow-sm hover:shadow-sky-100/50 transition-shadow duration-200">
+                    <div className="w-12 h-12 rounded-xl bg-sky-100/50 border border-sky-200/50 flex items-center justify-center mb-3">
+                      <Monitor className="w-6 h-6 text-sky-600" />
+                    </div>
+                    <h3 className="font-semibold text-stone-800 mb-2">Windows</h3>
+                    <p className="text-stone-600/90 text-sm leading-relaxed mb-3">
+                      Native desktop application with system tray integration
+                    </p>
+                    <Link href="/downloads/windows" className="text-sky-600 hover:text-sky-700 text-sm font-medium">
+                      Download →
+                    </Link>
+                  </div>
+
+                  <div className="p-5 bg-gradient-to-br from-orange-50/50 to-orange-50/20 rounded-2xl border border-orange-100/50 shadow-sm hover:shadow-orange-100/50 transition-shadow duration-200">
+                    <div className="w-12 h-12 rounded-xl bg-orange-100/50 border border-orange-200/50 flex items-center justify-center mb-3">
+                      <Terminal className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <h3 className="font-semibold text-stone-800 mb-2">Linux</h3>
+                    <p className="text-stone-600/90 text-sm leading-relaxed mb-3">
+                      Lightweight binary for all major distributions
+                    </p>
+                    <Link href="/downloads/linux" className="text-orange-600 hover:text-orange-700 text-sm font-medium">
+                      Download →
+                    </Link>
+                  </div>
+
+                  <div className="p-5 bg-gradient-to-br from-emerald-50/50 to-emerald-50/20 rounded-2xl border border-emerald-100/50 shadow-sm hover:shadow-emerald-100/50 transition-shadow duration-200">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-100/50 border border-emerald-200/50 flex items-center justify-center mb-3">
+                      <Smartphone className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <h3 className="font-semibold text-stone-800 mb-2">Android</h3>
+                    <p className="text-stone-600/90 text-sm leading-relaxed mb-3">
+                      Mobile app with background sync service
+                    </p>
+                    <Link href="/downloads/android" className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+                      Download →
+                    </Link>
+                  </div>
+
+                  <div className="p-5 bg-gradient-to-br from-violet-50/50 to-violet-50/20 rounded-2xl border border-violet-100/50 shadow-sm hover:shadow-violet-100/50 transition-shadow duration-200">
+                    <div className="w-12 h-12 rounded-xl bg-violet-100/50 border border-violet-200/50 flex items-center justify-center mb-3">
+                      <Globe className="w-6 h-6 text-violet-600" />
+                    </div>
+                    <h3 className="font-semibold text-stone-800 mb-2">Web</h3>
+                    <p className="text-stone-600/90 text-sm leading-relaxed mb-3">
+                      Browser-based interface, no installation required
+                    </p>
+                    <Link href="/" className="text-violet-600 hover:text-violet-700 text-sm font-medium">
+                      Open Web App →
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -201,17 +262,6 @@ export default function WhatIsClipboardSync() {
           </div>
         </div>
         
-        <div className="flex justify-center mt-8 max-w-4xl mx-auto px-4">
-          <Link 
-            href="/resources/use-cases" 
-            className="group w-full sm:w-auto text-center inline-flex items-center justify-center text-blue-600 hover:text-blue-800 font-medium transition-all duration-200 py-2.5 px-5 rounded-lg hover:bg-blue-50 border border-blue-100 hover:border-blue-200"
-          >
-            <span>Explore Use Cases</span>
-            <svg className="w-4 h-4 ml-2 flex-shrink-0 text-blue-500 group-hover:text-blue-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
       </div>
     </div>
   );

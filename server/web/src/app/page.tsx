@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Share2, Lock, Smartphone } from 'lucide-react';
+import { Share2, Lock, Monitor, Smartphone, Chrome } from 'lucide-react';
 import { TokenInput } from '@/components/TokenInput';
 
 const FeatureCard = ({ icon, title, description, color }: { icon: React.ReactNode, title: string, description: string, color: string }) => {
@@ -108,21 +108,56 @@ function HomeContent() {
           <FeatureCard
             icon={<Share2 className="w-6 h-6" />}
             title="Real-time Sync"
-            description="Instantly share text between devices"
+            description="Instantly share text across all your devices"
             color="violet"
           />
           <FeatureCard
             icon={<Lock className="w-6 h-6" />}
             title="Token-based Access"
-            description="Generate a token to connect your devices"
+            description="Secure connection with a single token"
             color="indigo"
           />
           <FeatureCard
-            icon={<Smartphone className="w-6 h-6" />}
-            title="Cross-Platform"
-            description="Windows executable or web browser - your choice"
+            icon={<Monitor className="w-6 h-6" />}
+            title="Multi-Platform"
+            description="Windows, Linux, Android, and Web support"
             color="cyan"
           />
+        </div>
+
+        {/* Platform Cards */}
+        <div className="w-full bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-gray-200 shadow-sm mb-6 sm:mb-8">
+          <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">Available Platforms</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 mb-3">
+                <Monitor className="w-6 h-6" />
+              </div>
+              <span className="font-medium text-gray-800">Windows</span>
+              <span className="text-xs text-gray-500 mt-1">Native App</span>
+            </div>
+            <div className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-700 mb-3">
+                <Monitor className="w-6 h-6" />
+              </div>
+              <span className="font-medium text-gray-800">Linux</span>
+              <span className="text-xs text-gray-500 mt-1">Native App</span>
+            </div>
+            <div className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-700 mb-3">
+                <Smartphone className="w-6 h-6" />
+              </div>
+              <span className="font-medium text-gray-800">Android</span>
+              <span className="text-xs text-gray-500 mt-1">Mobile App</span>
+            </div>
+            <div className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-700 mb-3">
+                <Chrome className="w-6 h-6" />
+              </div>
+              <span className="font-medium text-gray-800">Web</span>
+              <span className="text-xs text-gray-500 mt-1">Browser</span>
+            </div>
+          </div>
         </div>
 
         {/* How It Works */}
@@ -137,7 +172,7 @@ function HomeContent() {
               <Step number={3} title="Start Syncing" color="amber" />
             </div>
             <p className="text-center text-gray-600 max-w-2xl mx-auto mt-6">
-              Download the Windows app or use the web interface - copy on one device, paste on another!
+              Download native apps for Windows, Linux, or Android - or use directly in your browser. Copy on one device, paste on another!
             </p>
           </div>
         </div>
