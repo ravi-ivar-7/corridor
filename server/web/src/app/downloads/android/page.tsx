@@ -41,6 +41,11 @@ export default function AndroidDownloadPage() {
             <Download className="h-6 w-6 mr-2" />
             Download APK
           </a>
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm text-amber-800">
+              <strong>Installation:</strong> Enable "Install from unknown sources" in Settings → Security or Settings → Apps
+            </p>
+          </div>
         </div>
 
         {/* Key Features */}

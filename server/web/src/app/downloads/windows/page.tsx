@@ -41,6 +41,11 @@ export default function WindowsDownloadPage() {
             <Download className="h-6 w-6 mr-2" />
             Download for Windows
           </a>
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-sm text-amber-800">
+              <strong>Security Note:</strong> Self-signed certificate - Windows may show a warning. Click "More info" → "Run anyway"
+            </p>
+          </div>
         </div>
 
         {/* Key Features */}

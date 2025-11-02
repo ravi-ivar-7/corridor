@@ -1,7 +1,18 @@
-import { Download, Monitor, CheckCircle, ArrowLeft, Terminal, Play, Settings, Zap } from 'lucide-react';
+'use client';
+
+import { Download, Monitor, CheckCircle, ArrowLeft, Terminal, Play, Settings, Zap, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function LinuxDownloadPage() {
+  const [copied, setCopied] = useState(false);
+
+  const copyInstallCommand = () => {
+    navigator.clipboard.writeText('curl -fsSL https://corridor.rknain.com/install-linux.sh | bash');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -27,22 +38,68 @@ export default function LinuxDownloadPage() {
           </p>
         </div>
 
-        {/* Download Button */}
-        <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-4 mb-8 text-center shadow-sm">
-          <div className="mb-4">
+        {/* Quick Install */}
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-6 mb-8 shadow-sm">
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Quick Install (Recommended)</h2>
+            <p className="text-sm text-gray-600">One command to download, install, and make executable</p>
+          </div>
+          <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3 relative group">
+            <code className="pr-10">curl -fsSL https://corridor.rknain.com/install-linux.sh | bash</code>
+            <button
+              onClick={copyInstallCommand}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded hover:bg-gray-800 transition-colors"
+              title="Copy command"
+            >
+              {copied ? (
+                <Check className="h-5 w-5 text-emerald-400" />
+              ) : (
+                <Copy className="h-5 w-5 text-gray-400 group-hover:text-gray-200" />
+              )}
+            </button>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-600">
+              Installs to <code className="bg-gray-200 px-1 rounded">~/.local/bin/Corridor</code> • Requires curl
+            </p>
+          </div>
+        </div>
+
+        {/* Manual Download */}
+        <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-4 mb-8 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 text-center">Manual Download</h2>
+          <div className="mb-4 text-center">
             <div className="text-sm text-gray-600 mb-2">Latest Version: 1.0.0</div>
             <div className="text-sm text-gray-500">glibc 2.31+ • Ubuntu 20.04+ • ~3MB</div>
           </div>
-          <a
-            href="/Corridor"
-            download="Corridor"
-            className="inline-flex items-center justify-center px-8 py-4 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 text-lg"
-          >
-            <Download className="h-6 w-6 mr-2" />
-            Download for Linux
-          </a>
-          <div className="mt-4 text-xs text-gray-500">
-            Standalone binary • x86_64 architecture
+          <div className="text-center mb-4">
+            <a
+              href="/Corridor"
+              download="Corridor"
+              className="inline-flex items-center justify-center px-8 py-4 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 text-lg"
+            >
+              <Download className="h-6 w-6 mr-2" />
+              Download Binary
+            </a>
+            <div className="mt-3 text-xs text-gray-500">
+              Standalone binary • x86_64 architecture
+            </div>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm text-amber-800 font-semibold mb-3 text-center">After Download:</p>
+            <div className="space-y-2">
+              <div className="bg-gray-900 text-gray-100 px-4 py-2 rounded-lg font-mono text-sm">
+                <div className="text-gray-400 text-xs mb-1"># Make executable</div>
+                <code>$ chmod +x Corridor</code>
+              </div>
+              <div className="bg-gray-900 text-gray-100 px-4 py-2 rounded-lg font-mono text-sm">
+                <div className="text-gray-400 text-xs mb-1"># Run the application</div>
+                <code>$ ./Corridor</code>
+              </div>
+              <p className="text-xs text-gray-600 mt-2 text-center">
+                Or simply double-click the file after making it executable
+              </p>
+            </div>
           </div>
         </div>
 
@@ -71,41 +128,33 @@ export default function LinuxDownloadPage() {
 
         {/* Installation Steps */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Installation & Setup</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Start Guide</h2>
           <div className="space-y-6">
             {[
               {
                 step: '1',
-                title: 'Download',
-                desc: 'Download the Corridor binary from the button above',
+                title: 'Install',
+                desc: 'Use the quick install command above, or download manually and run chmod +x',
                 icon: Download,
                 color: 'fuchsia'
               },
               {
                 step: '2',
-                title: 'Make Executable',
-                desc: 'Open terminal and run: chmod +x Corridor',
-                icon: Terminal,
-                color: 'cyan',
-                code: 'chmod +x Corridor'
+                title: 'Run Corridor',
+                desc: 'Execute: Corridor - A setup dialog will appear on first run',
+                icon: Play,
+                color: 'amber',
+                code: 'Corridor'
               },
               {
                 step: '3',
-                title: 'Run the Application',
-                desc: 'Execute: ./Corridor - A setup dialog will appear on first run',
-                icon: Play,
-                color: 'amber',
-                code: './Corridor'
-              },
-              {
-                step: '4',
                 title: 'Configure Settings',
-                desc: 'Enter your token, choose mode, and enable auto-start in the setup wizard',
+                desc: 'Enter your token, choose mode (Interactive/Silent), and enable auto-start',
                 icon: Settings,
                 color: 'violet'
               },
               {
-                step: '5',
+                step: '4',
                 title: 'Start Syncing',
                 desc: 'Click "Save and Start" - check system tray for the Corridor icon',
                 icon: Zap,
